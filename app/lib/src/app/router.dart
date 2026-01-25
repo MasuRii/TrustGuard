@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../features/groups/presentation/group_form_screen.dart';
 import '../features/groups/presentation/group_overview_screen.dart';
 import '../features/groups/presentation/home_screen.dart';
+import '../features/groups/presentation/members_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -31,8 +32,10 @@ final router = GoRouter(
             ),
             GoRoute(
               path: 'members',
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Members'),
+              builder: (context, state) {
+                final id = state.pathParameters['id']!;
+                return MembersScreen(groupId: id);
+              },
             ),
             GoRoute(
               path: 'balances',
