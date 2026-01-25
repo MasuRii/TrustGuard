@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app/providers.dart';
+import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
 import 'groups_providers.dart';
 
@@ -33,38 +35,18 @@ class HomeScreen extends ConsumerWidget {
       body: groupsAsync.when(
         data: (groups) {
           if (groups.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppTheme.space32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      showArchived
-                          ? Icons.archive_outlined
-                          : Icons.group_off_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                    const SizedBox(height: AppTheme.space24),
-                    Text(
-                      showArchived ? 'No archived groups' : 'No groups yet',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppTheme.space8),
-                    Text(
-                      showArchived
-                          ? 'Archived groups will appear here'
-                          : 'Create a group to start tracking expenses and settlements with your friends.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            return EmptyState(
+              icon: showArchived
+                  ? Icons.archive_outlined
+                  : Icons.group_off_outlined,
+              title: showArchived ? 'No archived groups' : 'No groups yet',
+              message: showArchived
+                  ? 'Archived groups will appear here.'
+                  : 'Create a group to start tracking expenses and settlements with your friends.',
+              actionLabel: showArchived ? null : 'Create Group',
+              onActionPressed: showArchived
+                  ? null
+                  : () => context.push('/group/create'),
             );
           }
 
@@ -95,17 +77,73 @@ class HomeScreen extends ConsumerWidget {
                       fontStyle: isArchived ? FontStyle.italic : null,
                     ),
                   ),
-                  trailing: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Balance', style: TextStyle(fontSize: 11)),
-                      Text(
-                        'Settled',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Text('Balance', style: TextStyle(fontSize: 11)),
+                          Text(
+                            'Settled',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isArchived ? Colors.grey : Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: AppTheme.space8),
+                      PopupMenuButton<String>(
+                        onSelected: (value) async {
+                          switch (value) {
+                            case 'edit':
+                              context.push('/group/${group.id}/edit');
+                              break;
+                            case 'archive':
+                              await ref
+                                  .read(groupRepositoryProvider)
+                                  .archiveGroup(group.id);
+                              break;
+                            case 'unarchive':
+                              await ref
+                                  .read(groupRepositoryProvider)
+                                  .unarchiveGroup(group.id);
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: ListTile(
+                              leading: Icon(Icons.edit_outlined),
+                              title: Text('Edit'),
+                              contentPadding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                          if (!isArchived)
+                            const PopupMenuItem(
+                              value: 'archive',
+                              child: ListTile(
+                                leading: Icon(Icons.archive_outlined),
+                                title: Text('Archive'),
+                                contentPadding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            )
+                          else
+                            const PopupMenuItem(
+                              value: 'unarchive',
+                              child: ListTile(
+                                leading: Icon(Icons.unarchive_outlined),
+                                title: Text('Unarchive'),
+                                contentPadding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ),

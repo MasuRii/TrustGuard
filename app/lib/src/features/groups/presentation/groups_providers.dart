@@ -16,3 +16,12 @@ final groupsWithMemberCountProvider =
         includeArchived: includeArchived,
       );
     });
+
+/// Provider for a single group by its ID.
+final groupProvider = FutureProvider.autoDispose.family<Group?, String>((
+  ref,
+  id,
+) {
+  final repository = ref.watch(groupRepositoryProvider);
+  return repository.getGroupById(id);
+});
