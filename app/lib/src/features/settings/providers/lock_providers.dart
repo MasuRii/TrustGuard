@@ -31,9 +31,11 @@ class AppLockNotifier extends Notifier<AppLockState> {
   Future<void> init() async {
     final service = ref.read(appLockServiceProvider);
     final hasPin = await service.isPinSet();
+    final isBiometricEnabled = await service.isBiometricEnabled();
     state = state.copyWith(
       isLocked: hasPin,
       hasPin: hasPin,
+      isBiometricEnabled: isBiometricEnabled,
       isInitialized: true,
     );
   }
@@ -63,6 +65,29 @@ class AppLockNotifier extends Notifier<AppLockState> {
       );
       return false;
     }
+  }
+
+  Future<bool> authenticateBiometrically() async {
+    if (state.isBlocked || !state.isBiometricEnabled) return false;
+
+    final service = ref.read(appLockServiceProvider);
+    final success = await service.authenticateWithBiometrics();
+
+    if (success) {
+      state = state.copyWith(
+        isLocked: false,
+        failedAttempts: 0,
+        blockUntil: null,
+      );
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> setBiometricEnabled(bool value) async {
+    final service = ref.read(appLockServiceProvider);
+    await service.setBiometricEnabled(value);
+    state = state.copyWith(isBiometricEnabled: value);
   }
 
   void lock() {

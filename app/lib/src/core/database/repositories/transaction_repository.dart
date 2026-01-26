@@ -2,15 +2,18 @@ import 'package:drift/drift.dart';
 import '../database.dart';
 import '../mappers/transaction_mapper.dart';
 import '../../models/transaction.dart' as model;
+import '../../models/transaction_filter.dart';
 
 abstract class TransactionRepository {
   Future<List<model.Transaction>> getTransactionsByGroup(
     String groupId, {
     bool includeDeleted = false,
+    TransactionFilter? filter,
   });
   Stream<List<model.Transaction>> watchTransactionsByGroup(
     String groupId, {
     bool includeDeleted = false,
+    TransactionFilter? filter,
   });
   Future<model.Transaction?> getTransactionById(String id);
   Future<void> createTransaction(model.Transaction transaction);
@@ -28,6 +31,7 @@ class DriftTransactionRepository implements TransactionRepository {
   Future<List<model.Transaction>> getTransactionsByGroup(
     String groupId, {
     bool includeDeleted = false,
+    TransactionFilter? filter,
   }) async {
     final query = _db.select(_db.transactions).join([
       leftOuterJoin(
@@ -44,6 +48,8 @@ class DriftTransactionRepository implements TransactionRepository {
       query.where(_db.transactions.deletedAt.isNull());
     }
 
+    _applyFilter(query, filter);
+
     query.orderBy([OrderingTerm.desc(_db.transactions.occurredAt)]);
 
     final rows = await query.get();
@@ -54,6 +60,7 @@ class DriftTransactionRepository implements TransactionRepository {
   Stream<List<model.Transaction>> watchTransactionsByGroup(
     String groupId, {
     bool includeDeleted = false,
+    TransactionFilter? filter,
   }) {
     final query = _db.select(_db.transactions).join([
       leftOuterJoin(
@@ -70,9 +77,61 @@ class DriftTransactionRepository implements TransactionRepository {
       query.where(_db.transactions.deletedAt.isNull());
     }
 
+    _applyFilter(query, filter);
+
     query.orderBy([OrderingTerm.desc(_db.transactions.occurredAt)]);
 
     return query.watch().asyncMap(_mapRowsToTransactions);
+  }
+
+  void _applyFilter(
+    JoinedSelectStatement<HasResultSet, dynamic> query,
+    TransactionFilter? filter,
+  ) {
+    if (filter == null || filter.isEmpty) return;
+
+    if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
+      query.where(_db.transactions.note.like('%${filter.searchQuery}%'));
+    }
+
+    if (filter.startDate != null) {
+      query.where(
+        _db.transactions.occurredAt.isBiggerOrEqualValue(filter.startDate!),
+      );
+    }
+
+    if (filter.endDate != null) {
+      query.where(
+        _db.transactions.occurredAt.isSmallerOrEqualValue(filter.endDate!),
+      );
+    }
+
+    if (filter.tagIds != null && filter.tagIds!.isNotEmpty) {
+      query.where(
+        existsQuery(
+          _db.select(_db.transactionTags)..where(
+            (t) =>
+                t.txId.equalsExp(_db.transactions.id) &
+                t.tagId.isIn(filter.tagIds!),
+          ),
+        ),
+      );
+    }
+
+    if (filter.memberIds != null && filter.memberIds!.isNotEmpty) {
+      query.where(
+        _db.expenseDetails.payerMemberId.isIn(filter.memberIds!) |
+            existsQuery(
+              _db.select(_db.expenseParticipants)..where(
+                (t) =>
+                    t.txId.equalsExp(_db.transactions.id) &
+                    t.memberId.isIn(filter.memberIds!),
+              ),
+            ) |
+            _db.transferDetails.fromMemberId.isIn(filter.memberIds!) |
+            _db.transferDetails.toMemberId.isIn(filter.memberIds!),
+      );
+    }
   }
 
   @override

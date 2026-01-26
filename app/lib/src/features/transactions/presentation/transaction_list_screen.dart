@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../app/providers.dart';
+import '../../../core/models/member.dart';
+import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
+import '../../../core/models/transaction_filter.dart';
 import '../../../core/utils/money.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
+import 'transaction_filter_sheet.dart';
 import 'transactions_providers.dart';
 
 class TransactionListScreen extends ConsumerWidget {
@@ -19,62 +24,142 @@ class TransactionListScreen extends ConsumerWidget {
     final transactionsAsync = ref.watch(transactionsByGroupProvider(groupId));
     final membersAsync = ref.watch(membersByGroupProvider(groupId));
     final groupAsync = ref.watch(groupStreamProvider(groupId));
+    final filter = ref.watch(transactionFilterProvider(groupId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Transactions')),
-      body: transactionsAsync.when(
-        data: (transactions) {
-          if (transactions.isEmpty) {
-            return EmptyState(
-              icon: Icons.receipt_long_outlined,
-              title: 'No transactions yet',
-              message: 'Add your first expense or transfer to get started.',
-              actionLabel: 'Add Expense',
-              onActionPressed: () =>
-                  context.push('/group/$groupId/transactions/add-expense'),
-            );
-          }
+      appBar: AppBar(
+        title: const Text('Transactions'),
+        actions: [
+          IconButton(
+            icon: Badge(
+              isLabelVisible: !filter.isEmpty,
+              child: const Icon(Icons.filter_list),
+            ),
+            onPressed: () {
+              showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                builder: (context) => TransactionFilterSheet(groupId: groupId),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppTheme.space8),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search note...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: filter.searchQuery?.isNotEmpty ?? false
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          ref
+                              .read(transactionFilterProvider(groupId).notifier)
+                              .state = filter.copyWith(
+                            searchQuery: '',
+                          );
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              onChanged: (value) {
+                ref.read(transactionFilterProvider(groupId).notifier).state =
+                    filter.copyWith(searchQuery: value);
+              },
+            ),
+          ),
+          if (!filter.isEmpty) _ActiveFilterChips(groupId: groupId),
+          Expanded(
+            child: transactionsAsync.when(
+              data: (transactions) {
+                if (transactions.isEmpty) {
+                  return filter.isEmpty
+                      ? EmptyState(
+                          icon: Icons.receipt_long_outlined,
+                          title: 'No transactions yet',
+                          message:
+                              'Add your first expense or transfer to get started.',
+                          actionLabel: 'Add Expense',
+                          onActionPressed: () => context.push(
+                            '/group/$groupId/transactions/add-expense',
+                          ),
+                        )
+                      : EmptyState(
+                          icon: Icons.search_off,
+                          title: 'No results found',
+                          message: 'Try adjusting your filters.',
+                          actionLabel: 'Clear All Filters',
+                          onActionPressed: () {
+                            ref
+                                    .read(
+                                      transactionFilterProvider(
+                                        groupId,
+                                      ).notifier,
+                                    )
+                                    .state =
+                                const TransactionFilter();
+                          },
+                        );
+                }
 
-          return membersAsync.when(
-            data: (members) {
-              final memberMap = {for (var m in members) m.id: m.displayName};
+                return membersAsync.when(
+                  data: (members) {
+                    final memberMap = {
+                      for (var m in members) m.id: m.displayName,
+                    };
 
-              return groupAsync.when(
-                data: (group) {
-                  final currencyCode = group?.currencyCode ?? 'USD';
+                    return groupAsync.when(
+                      data: (group) {
+                        final currencyCode = group?.currencyCode ?? 'USD';
 
-                  return RefreshIndicator(
-                    onRefresh: () => ref.refresh(
-                      transactionsByGroupProvider(groupId).future,
-                    ),
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(AppTheme.space8),
-                      itemCount: transactions.length,
-                      separatorBuilder: (context, index) => const Divider(),
-                      itemBuilder: (context, index) {
-                        final tx = transactions[index];
-                        return _TransactionListItem(
-                          transaction: tx,
-                          memberMap: memberMap,
-                          currencyCode: currencyCode,
-                          onTap: () => context.push(
-                            '/group/$groupId/transactions/${tx.id}',
+                        return RefreshIndicator(
+                          onRefresh: () => ref.refresh(
+                            transactionsByGroupProvider(groupId).future,
+                          ),
+                          child: ListView.separated(
+                            padding: const EdgeInsets.all(AppTheme.space8),
+                            itemCount: transactions.length,
+                            separatorBuilder: (context, index) =>
+                                const Divider(),
+                            itemBuilder: (context, index) {
+                              final tx = transactions[index];
+                              return _TransactionListItem(
+                                transaction: tx,
+                                memberMap: memberMap,
+                                currencyCode: currencyCode,
+                                onTap: () => context.push(
+                                  '/group/$groupId/transactions/${tx.id}',
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
-                    ),
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(child: Text('Error: $error')),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(child: Text('Error: $error')),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (error, stack) =>
+                          Center(child: Text('Error: $error')),
+                    );
+                  },
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(child: Text('Error: $error')),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -113,6 +198,119 @@ class TransactionListScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ActiveFilterChips extends ConsumerWidget {
+  final String groupId;
+
+  const _ActiveFilterChips({required this.groupId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filter = ref.watch(transactionFilterProvider(groupId));
+    final membersAsync = ref.watch(membersByGroupProvider(groupId));
+    final tagsAsync = ref.watch(tagsProvider(groupId));
+
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.space8),
+        children: [
+          if (filter.tagIds?.isNotEmpty ?? false)
+            tagsAsync.maybeWhen(
+              data: (List<Tag> tags) {
+                return Wrap(
+                  children: filter.tagIds!.map((id) {
+                    final tag = tags.firstWhere(
+                      (t) => t.id == id,
+                      orElse: () => Tag(id: id, groupId: groupId, name: id),
+                    );
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Chip(
+                        label: Text('Tag: ${tag.name}'),
+                        onDeleted: () {
+                          final newTagIds = Set<String>.from(filter.tagIds!)
+                            ..remove(id);
+                          ref
+                              .read(transactionFilterProvider(groupId).notifier)
+                              .state = filter.copyWith(
+                            tagIds: newTagIds,
+                          );
+                        },
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+              orElse: () => const SizedBox.shrink(),
+            ),
+          if (filter.memberIds?.isNotEmpty ?? false)
+            membersAsync.maybeWhen(
+              data: (List<Member> members) {
+                return Wrap(
+                  children: filter.memberIds!.map((id) {
+                    final member = members.firstWhere(
+                      (m) => m.id == id,
+                      orElse: () => Member(
+                        id: id,
+                        groupId: groupId,
+                        displayName: id,
+                        createdAt: DateTime.now(),
+                      ),
+                    );
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Chip(
+                        label: Text('Member: ${member.displayName}'),
+                        onDeleted: () {
+                          final newMemberIds = Set<String>.from(
+                            filter.memberIds!,
+                          )..remove(id);
+                          ref
+                              .read(transactionFilterProvider(groupId).notifier)
+                              .state = filter.copyWith(
+                            memberIds: newMemberIds,
+                          );
+                        },
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+              orElse: () => const SizedBox.shrink(),
+            ),
+          if (filter.startDate != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Chip(
+                label: Text(
+                  'After: ${filter.startDate!.toString().split(' ')[0]}',
+                ),
+                onDeleted: () {
+                  ref.read(transactionFilterProvider(groupId).notifier).state =
+                      filter.copyWith(startDate: null);
+                },
+              ),
+            ),
+          if (filter.endDate != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Chip(
+                label: Text(
+                  'Before: ${filter.endDate!.toString().split(' ')[0]}',
+                ),
+                onDeleted: () {
+                  ref.read(transactionFilterProvider(groupId).notifier).state =
+                      filter.copyWith(endDate: null);
+                },
+              ),
+            ),
+        ],
       ),
     );
   }

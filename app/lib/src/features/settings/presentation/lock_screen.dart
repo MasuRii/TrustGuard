@@ -13,6 +13,33 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   String _enteredPin = '';
   static const _maxPinLength = 4;
   bool _isVerifying = false;
+  bool _hasPromptedBiometrics = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometrics();
+  }
+
+  Future<void> _checkBiometrics() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final lockState = ref.read(appLockStateProvider);
+      if (lockState.isBiometricEnabled && !_hasPromptedBiometrics) {
+        setState(() => _hasPromptedBiometrics = true);
+        await _authenticateBiometrically();
+      }
+    });
+  }
+
+  Future<void> _authenticateBiometrically() async {
+    final success = await ref
+        .read(appLockStateProvider.notifier)
+        .authenticateBiometrically();
+
+    if (mounted && !success) {
+      // Don't show error if cancelled, but maybe just reset prompt flag?
+    }
+  }
 
   void _onDigitPressed(int digit) {
     if (_enteredPin.length < _maxPinLength && !_isVerifying) {
@@ -181,12 +208,37 @@ class _LockScreenState extends ConsumerState<LockScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(width: 64, height: 64), // Empty space
+              _buildBiometricButton(theme),
               _buildDigitButton(0),
               _buildBackspaceButton(),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBiometricButton(ThemeData theme) {
+    final lockState = ref.watch(appLockStateProvider);
+    if (!lockState.isBiometricEnabled) {
+      return const SizedBox(width: 64, height: 64);
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _authenticateBiometrically,
+        borderRadius: BorderRadius.circular(32),
+        child: Container(
+          width: 64,
+          height: 64,
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.fingerprint,
+            size: 32,
+            color: theme.colorScheme.primary,
+          ),
+        ),
       ),
     );
   }

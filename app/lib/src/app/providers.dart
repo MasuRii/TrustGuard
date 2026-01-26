@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:local_auth/local_auth.dart';
 import '../core/database/database.dart';
 import '../core/database/repositories/group_repository.dart';
 import '../core/database/repositories/member_repository.dart';
@@ -19,7 +20,8 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 /// Provider for [AppLockService].
 final appLockServiceProvider = Provider<AppLockService>((ref) {
   const storage = FlutterSecureStorage();
-  return AppLockService(storage);
+  final auth = LocalAuthentication();
+  return AppLockService(storage, auth);
 });
 
 /// Provider for [GroupRepository].

@@ -16,6 +16,10 @@ void main() {
     mockService = MockAppLockService();
     when(() => mockService.isPinSet()).thenAnswer((_) async => true);
     when(() => mockService.verifyPin(any())).thenAnswer((_) async => false);
+    when(() => mockService.isBiometricEnabled()).thenAnswer((_) async => false);
+    when(
+      () => mockService.authenticateWithBiometrics(),
+    ).thenAnswer((_) async => false);
   });
 
   Widget createTestWidget(ProviderContainer container) {
@@ -111,5 +115,39 @@ void main() {
     expect(find.textContaining('Too many attempts'), findsOneWidget);
     expect(container.read(appLockStateProvider).isBlocked, true);
     expect(find.text('Blocked'), findsOneWidget);
+  });
+
+  testWidgets('shows biometric button when enabled', (tester) async {
+    when(() => mockService.isBiometricEnabled()).thenAnswer((_) async => true);
+
+    final container = ProviderContainer(
+      overrides: [appLockServiceProvider.overrideWithValue(mockService)],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(appLockStateProvider.notifier).init();
+    await tester.pumpWidget(createTestWidget(container));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.fingerprint), findsOneWidget);
+  });
+
+  testWidgets('biometric unlock succeeds', (tester) async {
+    when(() => mockService.isBiometricEnabled()).thenAnswer((_) async => true);
+    when(
+      () => mockService.authenticateWithBiometrics(),
+    ).thenAnswer((_) async => true);
+
+    final container = ProviderContainer(
+      overrides: [appLockServiceProvider.overrideWithValue(mockService)],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(appLockStateProvider.notifier).init();
+    await tester.pumpWidget(createTestWidget(container));
+    await tester.pumpAndSettle();
+
+    // Triggered automatically on load
+    expect(container.read(appLockStateProvider).isLocked, false);
   });
 }

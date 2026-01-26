@@ -18,6 +18,10 @@ void main() {
     mockService = MockAppLockService();
     when(() => mockService.isPinSet()).thenAnswer((_) async => true);
     when(() => mockService.verifyPin(any())).thenAnswer((_) async => false);
+    when(() => mockService.isBiometricEnabled()).thenAnswer((_) async => false);
+    when(
+      () => mockService.isBiometricAvailable(),
+    ).thenAnswer((_) async => false);
   });
 
   testWidgets('app locks when paused if lockOnBackground is enabled', (
