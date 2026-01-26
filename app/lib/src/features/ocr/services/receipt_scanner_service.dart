@@ -1,5 +1,6 @@
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../models/receipt_data.dart';
+import '../utils/receipt_parser.dart';
 
 class ReceiptScannerService {
   final TextRecognizer _textRecognizer = TextRecognizer();
@@ -11,7 +12,7 @@ class ReceiptScannerService {
         inputImage,
       );
 
-      return ReceiptData(rawText: recognizedText.text, confidence: 0.0);
+      return ReceiptParser.parseReceipt(recognizedText.text);
     } catch (e) {
       return null;
     }
