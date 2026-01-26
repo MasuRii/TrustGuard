@@ -5,9 +5,12 @@ TrustGuard is an offline-first group expense and settlement ledger Flutter app. 
 ## Features
 
 - **Offline-First**: All data is stored locally on your device using SQLite (Drift). No cloud account needed.
+- **Dashboard**: Global balance overview and recent activity across all active groups.
+- **Theme Customization**: Full support for Light, Dark, and System theme modes.
 - **Privacy Focused**: Your financial data never leaves your device (unless you explicitly export it).
 - **Group Management**: Create multiple groups for different trips, roommates, or events.
-- **Flexible Expenses**: Split expenses equally or with custom amounts.
+- **Flexible Expenses**: Split expenses equally or with custom amounts with real-time visual preview.
+- **Modern Interactions**: Avatar-based member selection, swipe-to-action gestures, and sticky date headers.
 - **Efficient Settlements**: Deterministic greedy algorithm to minimize the number of transfers needed.
 - **Tagging & Filtering**: Categorize transactions with tags and find them easily with search and filters.
 - **Security**: Protect your data with a PIN or biometric lock.
