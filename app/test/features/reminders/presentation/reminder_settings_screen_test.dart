@@ -17,6 +17,10 @@ void main() {
   late AppDatabase db;
   late MockNotificationService mockNotificationService;
 
+  setUpAll(() {
+    registerFallbackValue(ReminderSchedule.daily);
+  });
+
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
     mockNotificationService = MockNotificationService();
@@ -24,6 +28,17 @@ void main() {
     when(
       () => mockNotificationService.isPermissionGranted(),
     ).thenAnswer((_) async => true);
+    when(
+      () => mockNotificationService.cancelReminder(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockNotificationService.scheduleReminder(
+        groupId: any(named: 'groupId'),
+        title: any(named: 'title'),
+        body: any(named: 'body'),
+        schedule: any(named: 'schedule'),
+      ),
+    ).thenAnswer((_) async {});
   });
 
   Future<void> setupGroup(String id) async {

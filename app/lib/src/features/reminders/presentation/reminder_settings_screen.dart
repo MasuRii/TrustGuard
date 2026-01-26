@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/reminder_settings.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../services/reminder_service.dart';
 
 class ReminderSettingsScreen extends ConsumerWidget {
   final String groupId;
@@ -109,5 +110,9 @@ class ReminderSettingsScreen extends ConsumerWidget {
         await notificationService.requestPermissions();
       }
     }
+
+    // Refresh scheduled notification
+    final reminderService = ref.read(reminderServiceProvider);
+    await reminderService.refreshReminderForGroup(groupId);
   }
 }

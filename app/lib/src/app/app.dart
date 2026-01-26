@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../ui/theme/app_theme.dart';
 import '../features/settings/providers/lock_providers.dart';
+import '../features/reminders/services/reminder_service.dart';
 import 'providers.dart';
 import 'router.dart';
 
@@ -20,8 +21,31 @@ class _TrustGuardAppState extends ConsumerState<TrustGuardApp>
     WidgetsBinding.instance.addObserver(this);
     // Initialize services after first frame
     Future.microtask(() async {
-      await ref.read(notificationServiceProvider).init();
+      final notificationService = ref.read(notificationServiceProvider);
+
+      // Set up notification tap handler
+      notificationService.onNotificationTap = (groupId) {
+        if (groupId != null) {
+          final router = ref.read(routerProvider);
+          router.go('/group/$groupId');
+        }
+      };
+
+      await notificationService.init();
       await ref.read(appLockStateProvider.notifier).init();
+
+      // Refresh reminders on app start
+      await ref.read(reminderServiceProvider).refreshAllReminders();
+
+      // Check if app was launched from a notification
+      final launchDetails = await notificationService.getAppLaunchDetails();
+      if (launchDetails?.didNotificationLaunchApp ?? false) {
+        final payload = launchDetails?.notificationResponse?.payload;
+        if (payload != null) {
+          final router = ref.read(routerProvider);
+          router.go('/group/$payload');
+        }
+      }
     });
   }
 

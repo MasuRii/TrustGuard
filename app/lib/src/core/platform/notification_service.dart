@@ -1,6 +1,10 @@
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
+import '../models/reminder_settings.dart';
 
 /// Service for handling local notifications and permissions.
 class NotificationService {
@@ -9,10 +13,23 @@ class NotificationService {
 
   static const _permissionKey = 'notification_permission_granted';
 
+  /// Callback for notification taps.
+  void Function(String?)? onNotificationTap;
+
   NotificationService(this._notifications, this._storage);
 
   /// Initializes the notification plugin.
   Future<void> init() async {
+    tz.initializeTimeZones();
+    try {
+      final timezoneInfo = await FlutterTimezone.getLocalTimezone();
+      final identifier = timezoneInfo.identifier;
+      tz.setLocalLocation(tz.getLocation(identifier));
+    } catch (_) {
+      // Fallback to UTC if timezone cannot be determined (e.g., in tests)
+      tz.setLocalLocation(tz.getLocation('UTC'));
+    }
+
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -30,9 +47,80 @@ class NotificationService {
     await _notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (details) {
-        // Handle notification tap - to be expanded in 4.3.3
+        onNotificationTap?.call(details.payload);
       },
     );
+  }
+
+  /// Schedules a reminder notification for a group.
+  Future<void> scheduleReminder({
+    required String groupId,
+    required String title,
+    required String body,
+    required ReminderSchedule schedule,
+  }) async {
+    final now = tz.TZDateTime.now(tz.local);
+
+    // Set default time to 10:00 AM
+    var scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      10,
+    );
+
+    // If it's already past 10 AM, schedule for tomorrow
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    const androidDetails = AndroidNotificationDetails(
+      'group_reminders',
+      'Group Reminders',
+      channelDescription: 'Notifications for outstanding group balances',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const iosDetails = DarwinNotificationDetails();
+    const platformDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    DateTimeComponents matchComponents;
+    switch (schedule) {
+      case ReminderSchedule.daily:
+        matchComponents = DateTimeComponents.time;
+        break;
+      case ReminderSchedule.weekly:
+        matchComponents = DateTimeComponents.dayOfWeekAndTime;
+        break;
+      case ReminderSchedule.monthly:
+        matchComponents = DateTimeComponents.dayOfMonthAndTime;
+        break;
+    }
+
+    await _notifications.zonedSchedule(
+      groupId.hashCode.abs(),
+      title,
+      body,
+      scheduledDate,
+      platformDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: matchComponents,
+      payload: groupId,
+    );
+  }
+
+  /// Cancels a reminder notification for a group.
+  Future<void> cancelReminder(String groupId) async {
+    await _notifications.cancel(groupId.hashCode.abs());
+  }
+
+  /// Gets the details of the notification that launched the app.
+  Future<NotificationAppLaunchDetails?> getAppLaunchDetails() {
+    return _notifications.getNotificationAppLaunchDetails();
   }
 
   /// Requests notification permissions from the user.

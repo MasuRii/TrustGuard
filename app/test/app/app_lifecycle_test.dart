@@ -8,20 +8,24 @@ import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/features/settings/providers/lock_providers.dart';
 import 'package:trustguard/src/core/platform/app_lock_service.dart';
 import 'package:trustguard/src/core/database/database.dart';
-
 import 'package:trustguard/src/core/platform/notification_service.dart';
+import 'package:trustguard/src/features/reminders/services/reminder_service.dart';
 
 class MockAppLockService extends Mock implements AppLockService {}
 
 class MockNotificationService extends Mock implements NotificationService {}
 
+class MockReminderService extends Mock implements ReminderService {}
+
 void main() {
   late MockAppLockService mockService;
   late MockNotificationService mockNotificationService;
+  late MockReminderService mockReminderService;
 
   setUp(() {
     mockService = MockAppLockService();
     mockNotificationService = MockNotificationService();
+    mockReminderService = MockReminderService();
 
     when(() => mockService.isPinSet()).thenAnswer((_) async => true);
     when(() => mockService.verifyPin(any())).thenAnswer((_) async => false);
@@ -37,6 +41,13 @@ void main() {
     when(
       () => mockNotificationService.isPermissionGranted(),
     ).thenAnswer((_) async => false);
+    when(
+      () => mockNotificationService.getAppLaunchDetails(),
+    ).thenAnswer((_) async => null);
+
+    when(
+      () => mockReminderService.refreshAllReminders(),
+    ).thenAnswer((_) async {});
   });
 
   testWidgets('app locks when paused if lockOnBackground is enabled', (
@@ -51,6 +62,7 @@ void main() {
           notificationServiceProvider.overrideWithValue(
             mockNotificationService,
           ),
+          reminderServiceProvider.overrideWithValue(mockReminderService),
           databaseProvider.overrideWithValue(db),
         ],
         child: const TrustGuardApp(),
@@ -102,6 +114,7 @@ void main() {
           notificationServiceProvider.overrideWithValue(
             mockNotificationService,
           ),
+          reminderServiceProvider.overrideWithValue(mockReminderService),
           databaseProvider.overrideWithValue(db),
         ],
         child: const TrustGuardApp(),
