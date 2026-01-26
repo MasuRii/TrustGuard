@@ -11,6 +11,9 @@ abstract class RecurringTransactionRepository {
   Future<List<model.RecurringTransaction>> getDueRecurrings(DateTime now);
   Future<void> updateNextOccurrence(String id, DateTime next);
   Future<void> deactivateRecurring(String id);
+  Future<model.RecurringTransaction?> getRecurringByTemplateId(
+    String templateId,
+  );
 }
 
 class DriftRecurringTransactionRepository
@@ -60,5 +63,15 @@ class DriftRecurringTransactionRepository
   Future<void> deactivateRecurring(String id) async {
     await (_db.update(_db.recurringTransactions)..where((t) => t.id.equals(id)))
         .write(const RecurringTransactionsCompanion(isActive: Value(false)));
+  }
+
+  @override
+  Future<model.RecurringTransaction?> getRecurringByTemplateId(
+    String templateId,
+  ) async {
+    final query = _db.select(_db.recurringTransactions)
+      ..where((t) => t.templateTransactionId.equals(templateId));
+    final row = await query.getSingleOrNull();
+    return row != null ? RecurringTransactionMapper.toModel(row) : null;
   }
 }

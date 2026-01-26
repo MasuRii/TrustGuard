@@ -21,6 +21,7 @@ abstract class Transaction with _$Transaction {
     DateTime? deletedAt,
     ExpenseDetail? expenseDetail,
     TransferDetail? transferDetail,
+    @Default(false) bool isRecurring,
     @Default([]) List<Tag> tags,
   }) = _Transaction;
 

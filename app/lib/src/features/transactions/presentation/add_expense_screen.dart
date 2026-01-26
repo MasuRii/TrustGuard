@@ -8,6 +8,7 @@ import '../../../app/providers.dart';
 import '../../../app/app.dart';
 import '../../../core/models/expense.dart';
 import '../../../core/models/member.dart';
+import '../../../core/models/recurring_transaction.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/utils/haptics.dart';
@@ -54,6 +55,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
   bool _isDifferentCurrency = false;
   String _originalCurrencyCode = 'USD';
+
+  bool _isRepeatEnabled = false;
+  RecurrenceFrequency _frequency = RecurrenceFrequency.weekly;
+  DateTime? _endDate;
 
   Future<void> _scanReceipt() async {
     final picker = ImagePicker();
@@ -328,6 +333,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         note: _noteController.text.trim(),
         createdAt: widget.transactionId != null ? _createdAt : now,
         updatedAt: now,
+        isRecurring: _isRepeatEnabled,
         expenseDetail: ExpenseDetail(
           payerMemberId: _payerMemberId!,
           totalAmountMinor: totalAmountMinor,
@@ -342,6 +348,28 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
       if (widget.transactionId == null) {
         await repository.createTransaction(transaction);
+
+        if (_isRepeatEnabled) {
+          final recurrenceService = ref.read(recurrenceServiceProvider);
+          final nextOccurrence = recurrenceService.calculateNextOccurrence(
+            _occurredAt,
+            _frequency,
+          );
+
+          final recurringTx = RecurringTransaction(
+            id: const Uuid().v4(),
+            groupId: widget.groupId,
+            templateTransactionId: transaction.id,
+            frequency: _frequency,
+            nextOccurrence: nextOccurrence,
+            endDate: _endDate,
+            createdAt: now,
+          );
+
+          await ref
+              .read(recurringTransactionRepositoryProvider)
+              .createRecurring(recurringTx);
+        }
       } else {
         await repository.updateTransaction(transaction);
       }
@@ -435,6 +463,19 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
           }
           _selectedTagIds.clear();
           _selectedTagIds.addAll(tx.tags.map((t) => t.id));
+
+          _isRepeatEnabled = tx.isRecurring;
+          if (_isRepeatEnabled) {
+            ref.read(recurringByTemplateProvider(tx.id)).whenData((recurring) {
+              if (recurring != null) {
+                setState(() {
+                  _frequency = recurring.frequency;
+                  _endDate = recurring.endDate;
+                });
+              }
+            });
+          }
+
           _isInitialized = true;
           setState(() {});
         }
@@ -555,6 +596,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             ),
 
                             const SizedBox(height: AppTheme.space16),
+                            _buildRepeatSection(),
+
+                            const SizedBox(height: AppTheme.space16),
+
                             _buildTagsSection(),
                             const SizedBox(height: AppTheme.space24),
                             MemberAvatarSelector(
@@ -848,6 +893,96 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         ],
       ],
     );
+  }
+
+  Widget _buildRepeatSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SwitchListTile(
+          title: Text(context.l10n.repeat),
+          value: _isRepeatEnabled,
+          onChanged: (value) => setState(() => _isRepeatEnabled = value),
+          contentPadding: EdgeInsets.zero,
+        ),
+        if (_isRepeatEnabled) ...[
+          const SizedBox(height: AppTheme.space8),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<RecurrenceFrequency>(
+                  key: ValueKey('frequency_$_isInitialized'),
+                  initialValue: _frequency,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.frequency,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: RecurrenceFrequency.values.map((f) {
+                    return DropdownMenuItem(
+                      value: f,
+                      child: Text(_getFrequencyLabel(f)),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _frequency = value);
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: AppTheme.space16),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate:
+                          _endDate ?? _occurredAt.add(const Duration(days: 30)),
+                      firstDate: _occurredAt,
+                      lastDate: DateTime(2101),
+                    );
+                    if (picked != null) {
+                      setState(() => _endDate = picked);
+                    }
+                  },
+                  icon: const Icon(Icons.event),
+                  label: Text(
+                    _endDate == null
+                        ? context.l10n.repeatForever
+                        : DateFormat.yMMMd().format(_endDate!),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    alignment: Alignment.centerLeft,
+                  ),
+                ),
+              ),
+              if (_endDate != null)
+                IconButton(
+                  onPressed: () => setState(() => _endDate = null),
+                  icon: const Icon(Icons.clear),
+                  tooltip: context.l10n.repeatForever,
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _getFrequencyLabel(RecurrenceFrequency frequency) {
+    switch (frequency) {
+      case RecurrenceFrequency.daily:
+        return context.l10n.daily;
+      case RecurrenceFrequency.weekly:
+        return context.l10n.weekly;
+      case RecurrenceFrequency.biweekly:
+        return context.l10n.biweekly;
+      case RecurrenceFrequency.monthly:
+        return context.l10n.monthly;
+      case RecurrenceFrequency.yearly:
+        return context.l10n.yearly;
+    }
   }
 
   Widget _buildTagsSection() {

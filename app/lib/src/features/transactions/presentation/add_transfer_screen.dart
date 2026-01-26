@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
+import '../../../app/app.dart';
 import '../../../core/models/transfer.dart';
+import '../../../core/models/recurring_transaction.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/utils/money.dart';
@@ -46,6 +48,10 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
   bool _isLoading = false;
   bool _isInitialized = false;
   DateTime _createdAt = DateTime.now();
+
+  bool _isRepeatEnabled = false;
+  RecurrenceFrequency _frequency = RecurrenceFrequency.weekly;
+  DateTime? _endDate;
 
   @override
   void dispose() {
@@ -117,6 +123,7 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
         note: _noteController.text.trim(),
         createdAt: widget.transactionId != null ? _createdAt : now,
         updatedAt: now,
+        isRecurring: _isRepeatEnabled,
         transferDetail: TransferDetail(
           fromMemberId: _fromMemberId!,
           toMemberId: _toMemberId!,
@@ -127,6 +134,28 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
 
       if (widget.transactionId == null) {
         await repository.createTransaction(transaction);
+
+        if (_isRepeatEnabled) {
+          final recurrenceService = ref.read(recurrenceServiceProvider);
+          final nextOccurrence = recurrenceService.calculateNextOccurrence(
+            _occurredAt,
+            _frequency,
+          );
+
+          final recurringTx = RecurringTransaction(
+            id: const Uuid().v4(),
+            groupId: widget.groupId,
+            templateTransactionId: transaction.id,
+            frequency: _frequency,
+            nextOccurrence: nextOccurrence,
+            endDate: _endDate,
+            createdAt: now,
+          );
+
+          await ref
+              .read(recurringTransactionRepositoryProvider)
+              .createRecurring(recurringTx);
+        }
       } else {
         await repository.updateTransaction(transaction);
       }
@@ -144,6 +173,96 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Widget _buildRepeatSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SwitchListTile(
+          title: Text(context.l10n.repeat),
+          value: _isRepeatEnabled,
+          onChanged: (value) => setState(() => _isRepeatEnabled = value),
+          contentPadding: EdgeInsets.zero,
+        ),
+        if (_isRepeatEnabled) ...[
+          const SizedBox(height: AppTheme.space8),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<RecurrenceFrequency>(
+                  key: ValueKey('frequency_$_isInitialized'),
+                  initialValue: _frequency,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.frequency,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: RecurrenceFrequency.values.map((f) {
+                    return DropdownMenuItem(
+                      value: f,
+                      child: Text(_getFrequencyLabel(f)),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _frequency = value);
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: AppTheme.space16),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate:
+                          _endDate ?? _occurredAt.add(const Duration(days: 30)),
+                      firstDate: _occurredAt,
+                      lastDate: DateTime(2101),
+                    );
+                    if (picked != null) {
+                      setState(() => _endDate = picked);
+                    }
+                  },
+                  icon: const Icon(Icons.event),
+                  label: Text(
+                    _endDate == null
+                        ? context.l10n.repeatForever
+                        : DateFormat.yMMMd().format(_endDate!),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    alignment: Alignment.centerLeft,
+                  ),
+                ),
+              ),
+              if (_endDate != null)
+                IconButton(
+                  onPressed: () => setState(() => _endDate = null),
+                  icon: const Icon(Icons.clear),
+                  tooltip: context.l10n.repeatForever,
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _getFrequencyLabel(RecurrenceFrequency frequency) {
+    switch (frequency) {
+      case RecurrenceFrequency.daily:
+        return context.l10n.daily;
+      case RecurrenceFrequency.weekly:
+        return context.l10n.weekly;
+      case RecurrenceFrequency.biweekly:
+        return context.l10n.biweekly;
+      case RecurrenceFrequency.monthly:
+        return context.l10n.monthly;
+      case RecurrenceFrequency.yearly:
+        return context.l10n.yearly;
     }
   }
 
@@ -207,6 +326,19 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
           _toMemberId = tx.transferDetail!.toMemberId;
           _selectedTagIds.clear();
           _selectedTagIds.addAll(tx.tags.map((t) => t.id));
+
+          _isRepeatEnabled = tx.isRecurring;
+          if (_isRepeatEnabled) {
+            ref.read(recurringByTemplateProvider(tx.id)).whenData((recurring) {
+              if (recurring != null) {
+                setState(() {
+                  _frequency = recurring.frequency;
+                  _endDate = recurring.endDate;
+                });
+              }
+            });
+          }
+
           _isInitialized = true;
           setState(() {});
         }
@@ -321,6 +453,10 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
                             ),
 
                             const SizedBox(height: AppTheme.space16),
+                            _buildRepeatSection(),
+
+                            const SizedBox(height: AppTheme.space16),
+
                             _buildTagsSection(),
                             const SizedBox(height: AppTheme.space24),
                             Text(

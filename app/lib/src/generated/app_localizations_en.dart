@@ -455,4 +455,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get applyScannedData => 'Apply';
+
+  @override
+  String get repeat => 'Repeat';
+
+  @override
+  String get frequency => 'Frequency';
+
+  @override
+  String get daily => 'Daily';
+
+  @override
+  String get weekly => 'Weekly';
+
+  @override
+  String get biweekly => 'Every 2 weeks';
+
+  @override
+  String get monthly => 'Monthly';
+
+  @override
+  String get yearly => 'Yearly';
+
+  @override
+  String get repeatUntil => 'Until';
+
+  @override
+  String get repeatForever => 'Forever';
+
+  @override
+  String get recurring => 'Recurring';
 }

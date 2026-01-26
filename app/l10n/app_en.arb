@@ -242,5 +242,15 @@
   "ocrConfidenceHigh": "High confidence",
   "ocrConfidenceMedium": "Medium confidence - please verify",
   "ocrConfidenceLow": "Low confidence - please verify",
-  "applyScannedData": "Apply"
+  "applyScannedData": "Apply",
+  "repeat": "Repeat",
+  "frequency": "Frequency",
+  "daily": "Daily",
+  "weekly": "Weekly",
+  "biweekly": "Every 2 weeks",
+  "monthly": "Monthly",
+  "yearly": "Yearly",
+  "repeatUntil": "Until",
+  "repeatForever": "Forever",
+  "recurring": "Recurring"
 }

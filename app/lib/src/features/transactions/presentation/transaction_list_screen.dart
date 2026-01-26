@@ -523,6 +523,14 @@ class _TransactionListItem extends ConsumerWidget {
         ),
         title: Row(
           children: [
+            if (transaction.isRecurring) ...[
+              Icon(
+                Icons.repeat,
+                size: 14,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              const SizedBox(width: AppTheme.space4),
+            ],
             Expanded(
               child: Text(
                 transaction.note.isNotEmpty

@@ -18,6 +18,7 @@ void main() {
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
+      isRecurring: false,
     );
 
     const expenseDetailData = ExpenseDetail(
@@ -66,6 +67,7 @@ void main() {
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
+        isRecurring: false,
       );
 
       const transferDetailData = TransferDetail(
