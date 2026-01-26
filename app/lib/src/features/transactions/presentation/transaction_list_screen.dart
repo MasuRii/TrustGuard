@@ -11,6 +11,7 @@ import '../../../core/models/transaction.dart';
 import '../../../core/models/transaction_filter.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transaction_filter_sheet.dart';
 import 'transactions_providers.dart';
@@ -248,18 +249,16 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                           ),
                         );
                       },
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
+                      loading: () => const SkeletonList(),
                       error: (error, stack) =>
                           Center(child: Text('Error: $error')),
                     );
                   },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                  loading: () => const SkeletonList(),
                   error: (error, stack) => Center(child: Text('Error: $error')),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const SkeletonList(),
               error: (error, stack) => Center(child: Text('Error: $error')),
             ),
           ),

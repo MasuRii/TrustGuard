@@ -8,6 +8,7 @@ import '../../../app/providers.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/models/attachment.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/components/skeletons/skeleton_detail.dart';
 import '../../groups/presentation/groups_providers.dart';
 import '../services/attachment_service.dart';
 import 'transactions_providers.dart';
@@ -115,16 +116,16 @@ class TransactionDetailScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const SkeletonDetail(),
                 error: (e, _) =>
                     Center(child: Text('Error loading members: $e')),
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const SkeletonDetail(),
             error: (e, _) => Center(child: Text('Error loading group: $e')),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonDetail(),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );

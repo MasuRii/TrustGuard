@@ -7,6 +7,7 @@ import '../../../core/models/member.dart';
 import '../../../core/models/settlement_suggestion.dart';
 import '../../../core/utils/money.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../groups/presentation/groups_providers.dart';
 import '../providers/balance_providers.dart';
 import '../services/balance_service.dart';
@@ -128,11 +129,11 @@ class SettlementsScreen extends ConsumerWidget {
                 ],
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const SkeletonList(),
             error: (e, _) => Center(child: Text('Error loading balances: $e')),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonList(),
         error: (e, _) => Center(child: Text('Error loading group: $e')),
       ),
     );

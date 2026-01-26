@@ -5,6 +5,9 @@ import '../../../app/providers.dart';
 import '../../../app/app.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/components/skeletons/skeleton_card.dart';
+import '../../../ui/components/skeletons/skeleton_list.dart';
+import '../../../ui/components/skeletons/skeleton_list_item.dart';
 import '../../dashboard/presentation/widgets/dashboard_card.dart';
 import '../../dashboard/presentation/widgets/recent_activity_list.dart';
 import 'groups_providers.dart';
@@ -208,7 +211,40 @@ class HomeScreen extends ConsumerWidget {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => CustomScrollView(
+          slivers: [
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppTheme.space16,
+                  AppTheme.space16,
+                  AppTheme.space16,
+                  0,
+                ),
+                child: SkeletonCard(),
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(top: AppTheme.space24),
+                child: SkeletonList(
+                  itemCount: 3,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.all(AppTheme.space16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => const SkeletonListItem(),
+                  childCount: 5,
+                ),
+              ),
+            ),
+          ],
+        ),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
