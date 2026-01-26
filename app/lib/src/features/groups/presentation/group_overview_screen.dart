@@ -241,6 +241,20 @@ class GroupOverviewScreen extends ConsumerWidget {
           onTap: () => context.push('/group/${group.id}/balances'),
           color: Colors.teal,
         ),
+        _buildActionCard(
+          context,
+          icon: Icons.label_outline,
+          label: 'Tags',
+          onTap: () => context.push('/group/${group.id}/tags'),
+          color: Colors.pink,
+        ),
+        _buildActionCard(
+          context,
+          icon: Icons.import_export,
+          label: 'Export Data',
+          onTap: () => context.push('/group/${group.id}/export'),
+          color: Colors.brown,
+        ),
       ],
     );
   }

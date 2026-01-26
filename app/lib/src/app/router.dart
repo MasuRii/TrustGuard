@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/export_backup/presentation/export_screen.dart';
 import '../features/balances/presentation/balances_screen.dart';
 import '../features/balances/presentation/settlements_screen.dart';
 import '../features/groups/presentation/group_form_screen.dart';
@@ -94,6 +95,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return ReminderSettingsScreen(groupId: id);
+                },
+              ),
+              GoRoute(
+                path: 'export',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return ExportScreen(groupId: id);
                 },
               ),
               GoRoute(

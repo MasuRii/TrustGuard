@@ -13,6 +13,7 @@ import '../core/platform/notification_service.dart';
 import '../core/models/tag_with_usage.dart';
 import '../core/models/reminder_settings.dart';
 import '../core/models/tag.dart' as model;
+import '../features/export_backup/services/export_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -92,4 +93,14 @@ final tagsProvider = StreamProvider.family<List<model.Tag>, String>((
 ) {
   final repo = ref.watch(tagRepositoryProvider);
   return repo.watchTagsByGroup(groupId);
+});
+
+/// Provider for [ExportService].
+final exportServiceProvider = Provider<ExportService>((ref) {
+  final transactionRepository = ref.watch(transactionRepositoryProvider);
+  final memberRepository = ref.watch(memberRepositoryProvider);
+  return ExportService(
+    transactionRepository: transactionRepository,
+    memberRepository: memberRepository,
+  );
 });

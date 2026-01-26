@@ -102,9 +102,9 @@ class SettingsScreen extends ConsumerWidget {
           _buildSectionHeader(context, 'Data'),
           ListTile(
             leading: const Icon(Icons.import_export),
-            title: const Text('Export & Backup'),
+            title: const Text('Backup & Restore'),
             onTap: () {
-              // TODO: Navigate to export/backup screen
+              // TODO: Navigate to backup screen
             },
           ),
           const Divider(),
