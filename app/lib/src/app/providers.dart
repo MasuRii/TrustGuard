@@ -9,6 +9,7 @@ import '../core/database/repositories/member_repository.dart';
 import '../core/database/repositories/transaction_repository.dart';
 import '../core/database/repositories/tag_repository.dart';
 import '../core/database/repositories/reminder_repository.dart';
+import '../core/database/repositories/attachment_repository.dart';
 import '../core/platform/app_lock_service.dart';
 import '../core/platform/notification_service.dart';
 import '../core/models/tag_with_usage.dart';
@@ -123,6 +124,12 @@ final tagRepositoryProvider = Provider<TagRepository>((ref) {
 final reminderRepositoryProvider = Provider<ReminderRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return DriftReminderRepository(db);
+});
+
+/// Provider for [AttachmentRepository].
+final attachmentRepositoryProvider = Provider<AttachmentRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftAttachmentRepository(db);
 });
 
 /// Provider for watching reminder settings for a group.
