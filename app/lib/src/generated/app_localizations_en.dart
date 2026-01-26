@@ -333,6 +333,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paidBy => 'Paid by';
 
   @override
+  String get splitBetween => 'Split between';
+
+  @override
+  String get splitEqually => 'Split Equally';
+
+  @override
+  String get splitCustomly => 'Split Customly';
+
+  @override
   String get swipeToEdit => 'Edit';
 
   @override

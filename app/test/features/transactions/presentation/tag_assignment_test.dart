@@ -71,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Save
-    await tester.tap(find.byIcon(Icons.check));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
 
     // Verify transaction and tag assignment in DB

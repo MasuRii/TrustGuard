@@ -233,6 +233,13 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     }
   }
 
+  String _getInitials(String name) {
+    if (name.isEmpty) return '';
+    final parts = name.trim().split(' ');
+    if (parts.length == 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts.last[0]).toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
@@ -410,23 +417,37 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  'Split between',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppTheme.space16,
+                                  ),
+                                  child: Text(
+                                    context.l10n.splitBetween,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
                                 ),
                                 DropdownButton<SplitType>(
                                   value: _splitType,
                                   underline: const SizedBox(),
-                                  items: const [
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppTheme.space16,
+                                  ),
+                                  items: [
                                     DropdownMenuItem(
                                       value: SplitType.equal,
-                                      child: Text('Split Equally'),
+                                      child: Text(context.l10n.splitEqually),
                                     ),
                                     DropdownMenuItem(
                                       value: SplitType.custom,
-                                      child: Text('Split Customly'),
+                                      child: Text(context.l10n.splitCustomly),
                                     ),
                                   ],
                                   onChanged: (value) {
@@ -450,71 +471,110 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                               ],
                             ),
                             const SizedBox(height: AppTheme.space8),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context).dividerColor,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Column(
-                                children: members.map((m) {
-                                  final isSelected = _selectedMemberIds
-                                      .contains(m.id);
-                                  return Column(
-                                    children: [
-                                      CheckboxListTile(
-                                        title: Text(m.displayName),
-                                        value: isSelected,
-                                        onChanged: (checked) {
-                                          setState(() {
-                                            if (checked == true) {
-                                              _selectedMemberIds.add(m.id);
-                                              if (_splitType ==
-                                                  SplitType.custom) {
-                                                _customAmountControllers
-                                                    .putIfAbsent(
-                                                      m.id,
-                                                      () =>
-                                                          TextEditingController(),
-                                                    );
-                                              }
-                                            } else {
-                                              _selectedMemberIds.remove(m.id);
-                                            }
-                                          });
-                                        },
-                                        controlAffinity:
-                                            ListTileControlAffinity.leading,
-                                      ),
-                                      if (isSelected &&
-                                          _splitType == SplitType.custom)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 64.0,
-                                            right: 16.0,
-                                            bottom: 8.0,
-                                          ),
-                                          child: TextFormField(
-                                            controller:
-                                                _customAmountControllers[m.id],
-                                            decoration: InputDecoration(
-                                              labelText: 'Amount',
-                                              prefixText: '$currency ',
-                                              isDense: true,
-                                            ),
-                                            keyboardType:
-                                                const TextInputType.numberWithOptions(
-                                                  decimal: true,
-                                                ),
-                                            onChanged: (_) => setState(() {}),
-                                          ),
-                                        ),
-                                    ],
-                                  );
-                                }).toList(),
-                              ),
+                            MemberAvatarSelector(
+                              members: members,
+                              selectedIds: _selectedMemberIds,
+                              onSelectionChanged: (ids) {
+                                setState(() {
+                                  _selectedMemberIds.clear();
+                                  _selectedMemberIds.addAll(ids);
+                                  if (_splitType == SplitType.custom) {
+                                    for (var id in _selectedMemberIds) {
+                                      _customAmountControllers.putIfAbsent(
+                                        id,
+                                        () => TextEditingController(),
+                                      );
+                                    }
+                                    _customAmountControllers.removeWhere(
+                                      (id, _) =>
+                                          !_selectedMemberIds.contains(id),
+                                    );
+                                  }
+                                });
+                              },
+                              allowMultiple: true,
                             ),
+                            if (_splitType == SplitType.custom &&
+                                _selectedMemberIds.isNotEmpty) ...[
+                              const SizedBox(height: AppTheme.space16),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.space16,
+                                ),
+                                child: Column(
+                                  children: _selectedMemberIds.map((id) {
+                                    final member = members.firstWhere(
+                                      (m) => m.id == id,
+                                    );
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: AppTheme.space12,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 16,
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                            child: Text(
+                                              _getInitials(member.displayName),
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: AppTheme.space12,
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              member.displayName,
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodyMedium,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 120,
+                                            child: TextFormField(
+                                              controller:
+                                                  _customAmountControllers[id],
+                                              decoration: InputDecoration(
+                                                labelText: 'Amount',
+                                                prefixText: '$currency ',
+                                                isDense: true,
+                                                border:
+                                                    const OutlineInputBorder(),
+                                              ),
+                                              keyboardType:
+                                                  const TextInputType.numberWithOptions(
+                                                    decimal: true,
+                                                  ),
+                                              onChanged: (_) => setState(() {}),
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Required';
+                                                }
+                                                if (double.tryParse(value) ==
+                                                    null) {
+                                                  return 'Invalid';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
                             if (_splitType == SplitType.custom) ...[
                               const SizedBox(height: AppTheme.space8),
                               _buildCustomSplitStatus(currency),

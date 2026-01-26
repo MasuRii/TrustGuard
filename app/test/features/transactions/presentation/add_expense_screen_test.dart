@@ -81,7 +81,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'Lunch');
 
     // Tap Save
-    await tester.tap(find.byIcon(Icons.check));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
 
     // Verify transaction created
@@ -166,7 +166,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'New Note');
 
     // Tap Save
-    await tester.tap(find.byIcon(Icons.check));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
 
     // Verify transaction updated
@@ -214,7 +214,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap Save
-    await tester.tap(find.byIcon(Icons.check));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
 
     // Verify transaction created with custom split

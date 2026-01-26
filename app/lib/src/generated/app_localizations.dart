@@ -628,6 +628,24 @@ abstract class AppLocalizations {
   /// **'Paid by'**
   String get paidBy;
 
+  /// No description provided for @splitBetween.
+  ///
+  /// In en, this message translates to:
+  /// **'Split between'**
+  String get splitBetween;
+
+  /// No description provided for @splitEqually.
+  ///
+  /// In en, this message translates to:
+  /// **'Split Equally'**
+  String get splitEqually;
+
+  /// No description provided for @splitCustomly.
+  ///
+  /// In en, this message translates to:
+  /// **'Split Customly'**
+  String get splitCustomly;
+
   /// No description provided for @swipeToEdit.
   ///
   /// In en, this message translates to:

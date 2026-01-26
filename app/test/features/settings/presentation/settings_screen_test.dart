@@ -103,6 +103,11 @@ void main() {
 
     expect(find.text('Change PIN'), findsOneWidget);
     expect(find.text('Biometric Unlock'), findsOneWidget);
+
+    // Scroll to find other items
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+
     expect(find.text('Export Protection'), findsOneWidget);
     expect(find.text('Remove PIN'), findsOneWidget);
   });

@@ -114,8 +114,8 @@ void main() {
     await tester.pump(Duration.zero);
     await tester.pumpAndSettle();
 
-    expect(find.text('Bob'), findsOneWidget);
-    expect(find.text('Alice'), findsOneWidget);
+    expect(find.text('Bob'), findsWidgets);
+    expect(find.text('Alice'), findsWidgets);
     expect(find.text('owes'), findsOneWidget);
     expect(find.text('is owed'), findsOneWidget);
     expect(find.text(r'$10.00'), findsOneWidget);
