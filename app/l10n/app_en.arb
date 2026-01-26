@@ -158,5 +158,20 @@
   "debugLogs": "Debug Logs",
   "cancel": "Cancel",
   "remove": "Remove",
-  "clear": "Clear"
+  "clear": "Clear",
+  "dashboardTitle": "Your Overview",
+  "youOwe": "You Owe",
+  "owedToYou": "Owed to You",
+  "netBalance": "Net",
+  "groupsSummary": "{groupCount} {groupCount, plural, =1{group} other{groups}}, {unsettledCount, plural, =0{all settled} =1{1 needs settling} other{{unsettledCount} need settling}}",
+  "@groupsSummary": {
+    "placeholders": {
+      "groupCount": {
+        "type": "num"
+      },
+      "unsettledCount": {
+        "type": "num"
+      }
+    }
+  }
 }

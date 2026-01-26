@@ -272,4 +272,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clear => 'Clear';
+
+  @override
+  String get dashboardTitle => 'Your Overview';
+
+  @override
+  String get youOwe => 'You Owe';
+
+  @override
+  String get owedToYou => 'Owed to You';
+
+  @override
+  String get netBalance => 'Net';
+
+  @override
+  String groupsSummary(num groupCount, num unsettledCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      groupCount,
+      locale: localeName,
+      other: 'groups',
+      one: 'group',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      unsettledCount,
+      locale: localeName,
+      other: '$unsettledCount need settling',
+      one: '1 needs settling',
+      zero: 'all settled',
+    );
+    return '$groupCount $_temp0, $_temp1';
+  }
 }

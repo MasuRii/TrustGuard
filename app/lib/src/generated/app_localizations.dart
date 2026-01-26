@@ -543,6 +543,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear'**
   String get clear;
+
+  /// No description provided for @dashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Overview'**
+  String get dashboardTitle;
+
+  /// No description provided for @youOwe.
+  ///
+  /// In en, this message translates to:
+  /// **'You Owe'**
+  String get youOwe;
+
+  /// No description provided for @owedToYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to You'**
+  String get owedToYou;
+
+  /// No description provided for @netBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get netBalance;
+
+  /// No description provided for @groupsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{groupCount} {groupCount, plural, =1{group} other{groups}}, {unsettledCount, plural, =0{all settled} =1{1 needs settling} other{{unsettledCount} need settling}}'**
+  String groupsSummary(num groupCount, num unsettledCount);
 }
 
 class _AppLocalizationsDelegate
