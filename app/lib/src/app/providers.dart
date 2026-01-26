@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/database/database.dart';
 import '../core/database/repositories/group_repository.dart';
 import '../core/database/repositories/member_repository.dart';
 import '../core/database/repositories/transaction_repository.dart';
 import '../core/database/repositories/tag_repository.dart';
+import '../core/platform/app_lock_service.dart';
 import '../core/models/tag_with_usage.dart';
 import '../core/models/tag.dart' as model;
 
@@ -12,6 +14,12 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
   ref.onDispose(() => db.close());
   return db;
+});
+
+/// Provider for [AppLockService].
+final appLockServiceProvider = Provider<AppLockService>((ref) {
+  const storage = FlutterSecureStorage();
+  return AppLockService(storage);
 });
 
 /// Provider for [GroupRepository].
