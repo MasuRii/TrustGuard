@@ -173,5 +173,16 @@
         "type": "num"
       }
     }
+  },
+  "recentActivity": "Recent Activity",
+  "noRecentActivity": "No recent activity",
+  "seeAll": "See All",
+  "timeAgo": "{time} ago",
+  "@timeAgo": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

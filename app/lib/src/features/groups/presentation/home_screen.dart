@@ -6,6 +6,7 @@ import '../../../app/app.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../dashboard/presentation/widgets/dashboard_card.dart';
+import '../../dashboard/presentation/widgets/recent_activity_list.dart';
 import 'groups_providers.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -50,6 +51,12 @@ class HomeScreen extends ConsumerWidget {
                     0,
                   ),
                   child: DashboardCard(),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.only(top: AppTheme.space24),
+                  child: RecentActivityList(),
                 ),
               ),
               if (groups.isEmpty)

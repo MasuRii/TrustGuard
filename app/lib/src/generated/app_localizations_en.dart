@@ -302,4 +302,18 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$groupCount $_temp0, $_temp1';
   }
+
+  @override
+  String get recentActivity => 'Recent Activity';
+
+  @override
+  String get noRecentActivity => 'No recent activity';
+
+  @override
+  String get seeAll => 'See All';
+
+  @override
+  String timeAgo(String time) {
+    return '$time ago';
+  }
 }

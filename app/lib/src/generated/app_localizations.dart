@@ -573,6 +573,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{groupCount} {groupCount, plural, =1{group} other{groups}}, {unsettledCount, plural, =0{all settled} =1{1 needs settling} other{{unsettledCount} need settling}}'**
   String groupsSummary(num groupCount, num unsettledCount);
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get recentActivity;
+
+  /// No description provided for @noRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent activity'**
+  String get noRecentActivity;
+
+  /// No description provided for @seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See All'**
+  String get seeAll;
+
+  /// No description provided for @timeAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} ago'**
+  String timeAgo(String time);
 }
 
 class _AppLocalizationsDelegate
