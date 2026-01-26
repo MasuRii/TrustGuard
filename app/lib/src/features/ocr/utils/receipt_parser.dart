@@ -19,7 +19,7 @@ class ReceiptParser {
 
   /// Regular expressions for detecting merchant from "Welcome to" or similar
   static final RegExp _welcomeRegex = RegExp(
-    r'(?:Welcome to|Thanks for visiting|Store|Shop)\s+([^\n\r]+)',
+    r'(?:Welcome to|Thanks for visiting)\s+([^\n\r]+)',
     caseSensitive: false,
   );
 
@@ -90,14 +90,27 @@ class ReceiptParser {
       return welcomeMatch.group(1)?.trim();
     }
 
-    // Fallback: first non-empty line that isn't just numbers/symbols
+    // Fallback: first non-empty line that isn't just numbers/symbols/totals
     final lines = text.split('\n');
     for (final line in lines) {
       final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+
+      final lowerLine = trimmed.toLowerCase();
+      // Skip common receipt noise
+      if (lowerLine.contains('total') ||
+          lowerLine.contains('cash') ||
+          lowerLine.contains('change') ||
+          lowerLine.contains('items') ||
+          lowerLine.contains('tax')) {
+        continue;
+      }
+
       if (trimmed.length > 2 && RegExp(r'[a-zA-Z]').hasMatch(trimmed)) {
         // Skip common header noise like dates or phone numbers
         if (!RegExp(r'^\d+[\s-]\d+').hasMatch(trimmed) &&
-            !trimmed.contains('/')) {
+            !trimmed.contains('/') &&
+            !trimmed.contains(':')) {
           return trimmed;
         }
       }
