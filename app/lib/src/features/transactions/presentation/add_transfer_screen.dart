@@ -11,6 +11,7 @@ import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
+import '../../../ui/animations/shake_widget.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transactions_providers.dart';
@@ -41,6 +42,10 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
+
+  final _saveButtonKey = GlobalKey<ShakeWidgetState>();
+  final _appBarSaveKey = GlobalKey<ShakeWidgetState>();
+
   DateTime _occurredAt = DateTime.now();
   String? _fromMemberId;
   String? _toMemberId;
@@ -75,8 +80,14 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      _saveButtonKey.currentState?.shake();
+      _appBarSaveKey.currentState?.shake();
+      return;
+    }
     if (_fromMemberId == null || _toMemberId == null) {
+      _saveButtonKey.currentState?.shake();
+      _appBarSaveKey.currentState?.shake();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select both members')),
       );
@@ -85,6 +96,8 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
 
     final amountDouble = double.tryParse(_amountController.text);
     if (amountDouble == null || amountDouble <= 0) {
+      _saveButtonKey.currentState?.shake();
+      _appBarSaveKey.currentState?.shake();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid amount')),
       );
@@ -99,6 +112,8 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
     );
 
     if (!validation.isValid) {
+      _saveButtonKey.currentState?.shake();
+      _appBarSaveKey.currentState?.shake();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(validation.errorMessage!)));
@@ -350,10 +365,13 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
         title: Text(isEdit ? 'Edit Transfer' : 'Add Transfer'),
         actions: [
           if (!_isLoading)
-            IconButton(
-              onPressed: _save,
-              icon: const Icon(Icons.check),
-              tooltip: 'Save',
+            ShakeWidget(
+              key: _appBarSaveKey,
+              child: IconButton(
+                onPressed: _save,
+                icon: const Icon(Icons.check),
+                tooltip: 'Save',
+              ),
             ),
         ],
       ),
@@ -511,15 +529,18 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
                               ),
                             ),
                             const SizedBox(height: AppTheme.space32),
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : _save,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
+                            ShakeWidget(
+                              key: _saveButtonKey,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _save,
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                isEdit ? 'Update Transfer' : 'Add Transfer',
+                                child: Text(
+                                  isEdit ? 'Update Transfer' : 'Add Transfer',
+                                ),
                               ),
                             ),
                           ],

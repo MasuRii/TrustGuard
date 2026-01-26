@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../ui/animations/shake_widget.dart';
 import '../../../core/utils/haptics.dart';
 import '../providers/lock_providers.dart';
 
@@ -11,6 +12,7 @@ class LockScreen extends ConsumerStatefulWidget {
 }
 
 class _LockScreenState extends ConsumerState<LockScreen> {
+  final _shakeKey = GlobalKey<ShakeWidgetState>();
   String _enteredPin = '';
   static const _maxPinLength = 4;
   bool _isVerifying = false;
@@ -84,7 +86,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
     if (mounted) {
       if (!success) {
-        HapticsService.warning();
+        _shakeKey.currentState?.shake();
         final newLockState = ref.read(appLockStateProvider);
         setState(() {
           _enteredPin = '';
@@ -146,26 +148,29 @@ class _LockScreenState extends ConsumerState<LockScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_maxPinLength, (index) {
-                final isFilled = index < _enteredPin.length;
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isFilled
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.surfaceContainerHighest,
-                    border: Border.all(
-                      color: theme.colorScheme.outline,
-                      width: 1,
+            ShakeWidget(
+              key: _shakeKey,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(_maxPinLength, (index) {
+                  final isFilled = index < _enteredPin.length;
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isFilled
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.surfaceContainerHighest,
+                      border: Border.all(
+                        color: theme.colorScheme.outline,
+                        width: 1,
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
 
             const Spacer(flex: 1),

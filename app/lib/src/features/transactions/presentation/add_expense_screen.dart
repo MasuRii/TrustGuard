@@ -14,6 +14,7 @@ import '../../../core/models/transaction.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
+import '../../../ui/animations/shake_widget.dart';
 import '../../../ui/components/member_avatar_selector.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../ocr/models/receipt_data.dart';
@@ -42,6 +43,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   final _noteController = TextEditingController();
   final _originalAmountController = TextEditingController();
   final _exchangeRateController = TextEditingController();
+
+  final _saveButtonKey = GlobalKey<ShakeWidgetState>();
+  final _appBarSaveKey = GlobalKey<ShakeWidgetState>();
+  final _splitPreviewKey = GlobalKey<ShakeWidgetState>();
 
   DateTime _occurredAt = DateTime.now();
   String? _payerMemberId;
@@ -243,14 +248,22 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      _saveButtonKey.currentState?.shake();
+      _appBarSaveKey.currentState?.shake();
+      return;
+    }
     if (_payerMemberId == null) {
+      _saveButtonKey.currentState?.shake();
+      _appBarSaveKey.currentState?.shake();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Please select a payer')));
       return;
     }
     if (_selectedMemberIds.isEmpty) {
+      _saveButtonKey.currentState?.shake();
+      _appBarSaveKey.currentState?.shake();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select at least one participant')),
       );
@@ -259,6 +272,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
     final amountDouble = double.tryParse(_amountController.text);
     if (amountDouble == null || amountDouble <= 0) {
+      _saveButtonKey.currentState?.shake();
+      _appBarSaveKey.currentState?.shake();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid amount')),
       );
@@ -303,6 +318,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       );
 
       if (!validation.isValid) {
+        _saveButtonKey.currentState?.shake();
+        _appBarSaveKey.currentState?.shake();
+        _splitPreviewKey.currentState?.shake();
         throw Exception(validation.errorMessage);
       }
 
@@ -492,10 +510,13 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               icon: const Icon(Icons.document_scanner),
               tooltip: context.l10n.scanReceipt,
             ),
-            IconButton(
-              onPressed: _save,
-              icon: const Icon(Icons.check),
-              tooltip: 'Save',
+            ShakeWidget(
+              key: _appBarSaveKey,
+              child: IconButton(
+                onPressed: _save,
+                icon: const Icon(Icons.check),
+                tooltip: 'Save',
+              ),
             ),
           ],
         ],
@@ -779,18 +800,24 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             ],
                             if (_selectedMemberIds.isNotEmpty) ...[
                               const SizedBox(height: AppTheme.space16),
-                              _buildSplitPreview(currency, members),
+                              ShakeWidget(
+                                key: _splitPreviewKey,
+                                child: _buildSplitPreview(currency, members),
+                              ),
                             ],
                             const SizedBox(height: AppTheme.space32),
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : _save,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
+                            ShakeWidget(
+                              key: _saveButtonKey,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _save,
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                isEdit ? 'Update Expense' : 'Add Expense',
+                                child: Text(
+                                  isEdit ? 'Update Expense' : 'Add Expense',
+                                ),
                               ),
                             ),
                           ],
