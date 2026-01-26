@@ -316,4 +316,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String timeAgo(String time) {
     return '$time ago';
   }
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
 }

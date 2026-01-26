@@ -597,6 +597,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{time} ago'**
   String timeAgo(String time);
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
 }
 
 class _AppLocalizationsDelegate

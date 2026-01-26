@@ -184,5 +184,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "today": "Today",
+  "yesterday": "Yesterday"
 }
