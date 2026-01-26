@@ -35,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -44,7 +44,14 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
       },
       onUpgrade: (m, from, to) async {
-        // Migration logic for future versions
+        if (from < 2) {
+          await m.addColumn(expenseDetails, expenseDetails.exchangeRate);
+          await m.addColumn(
+            expenseDetails,
+            expenseDetails.originalCurrencyCode,
+          );
+          await m.addColumn(expenseDetails, expenseDetails.originalAmountMinor);
+        }
       },
       beforeOpen: (details) async {
         if (details.wasCreated) {
