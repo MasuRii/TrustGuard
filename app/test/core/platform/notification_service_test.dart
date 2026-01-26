@@ -49,22 +49,24 @@ void main() {
     // Default mock behavior
     when(
       () => mockNotifications.initialize(
-        any(),
+        settings: any(named: 'settings'),
         onDidReceiveNotificationResponse: any(
           named: 'onDidReceiveNotificationResponse',
         ),
       ),
     ).thenAnswer((_) async => true);
 
-    when(() => mockNotifications.cancel(any())).thenAnswer((_) async {});
+    when(
+      () => mockNotifications.cancel(id: any(named: 'id')),
+    ).thenAnswer((_) async {});
 
     when(
       () => mockNotifications.zonedSchedule(
-        any(),
-        any(),
-        any(),
-        any(),
-        any(),
+        id: any(named: 'id'),
+        title: any(named: 'title'),
+        body: any(named: 'body'),
+        scheduledDate: any(named: 'scheduledDate'),
+        notificationDetails: any(named: 'notificationDetails'),
         androidScheduleMode: any(named: 'androidScheduleMode'),
         matchDateTimeComponents: any(named: 'matchDateTimeComponents'),
         payload: any(named: 'payload'),
@@ -79,7 +81,7 @@ void main() {
 
       verify(
         () => mockNotifications.initialize(
-          any(),
+          settings: any(named: 'settings'),
           onDidReceiveNotificationResponse: any(
             named: 'onDidReceiveNotificationResponse',
           ),
@@ -99,11 +101,11 @@ void main() {
 
       verify(
         () => mockNotifications.zonedSchedule(
-          any(),
-          'Title',
-          'Body',
-          any(),
-          any(),
+          id: any(named: 'id'),
+          title: 'Title',
+          body: 'Body',
+          scheduledDate: any(named: 'scheduledDate'),
+          notificationDetails: any(named: 'notificationDetails'),
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           matchDateTimeComponents: DateTimeComponents.time,
           payload: 'group1',
@@ -114,7 +116,7 @@ void main() {
     test('cancelReminder calls cancel', () async {
       await notificationService.cancelReminder('group1');
 
-      verify(() => mockNotifications.cancel(any())).called(1);
+      verify(() => mockNotifications.cancel(id: any(named: 'id'))).called(1);
     });
 
     test('isPermissionGranted returns true if storage says true', () async {

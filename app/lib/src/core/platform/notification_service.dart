@@ -45,7 +45,7 @@ class NotificationService {
     );
 
     await _notifications.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: (details) {
         onNotificationTap?.call(details.payload);
       },
@@ -102,11 +102,11 @@ class NotificationService {
     }
 
     await _notifications.zonedSchedule(
-      groupId.hashCode.abs(),
-      title,
-      body,
-      scheduledDate,
-      platformDetails,
+      id: groupId.hashCode.abs(),
+      title: title,
+      body: body,
+      scheduledDate: scheduledDate,
+      notificationDetails: platformDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: matchComponents,
       payload: groupId,
@@ -115,7 +115,7 @@ class NotificationService {
 
   /// Cancels a reminder notification for a group.
   Future<void> cancelReminder(String groupId) async {
-    await _notifications.cancel(groupId.hashCode.abs());
+    await _notifications.cancel(id: groupId.hashCode.abs());
   }
 
   /// Gets the details of the notification that launched the app.
