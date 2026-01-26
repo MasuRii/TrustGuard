@@ -93,6 +93,38 @@ void main() {
     expect(expandedWidgets.last.flex, 300); // 0.3 * 1000
   });
 
+  testWidgets('SplitPreviewBar assigns different colors to different members', (
+    WidgetTester tester,
+  ) async {
+    final prefsOverrides = await getSharedPrefsOverride();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [...prefsOverrides],
+        child: wrapWithLocalization(
+          const Scaffold(
+            body: SplitPreviewBar(
+              totalAmount: 100,
+              splits: {'m1': 50, 'm2': 50},
+              memberNames: {'m1': 'Alice', 'm2': 'Bob'},
+              currencyCode: 'USD',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final containers = tester.widgetList<Container>(
+      find.descendant(of: find.byType(Row), matching: find.byType(Container)),
+    );
+
+    // We expect 2 containers (one for each member)
+    expect(containers.length, 2);
+    expect(containers.first.color, isNot(equals(containers.last.color)));
+  });
+
   testWidgets('SplitPreviewBar handles empty state', (
     WidgetTester tester,
   ) async {
