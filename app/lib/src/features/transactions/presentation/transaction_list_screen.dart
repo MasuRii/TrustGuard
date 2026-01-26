@@ -58,22 +58,6 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     }
   }
 
-  List<dynamic> _flattenTransactions(List<Transaction> transactions) {
-    if (transactions.isEmpty) return [];
-
-    final Map<DateTime, List<Transaction>> grouped = groupTransactionsByDate(
-      transactions,
-    );
-    final List<dynamic> items = [];
-
-    grouped.forEach((date, txs) {
-      items.add(date);
-      items.addAll(txs);
-    });
-
-    return items;
-  }
-
   @override
   Widget build(BuildContext context) {
     final transactionsAsync = ref.watch(
@@ -193,7 +177,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     return groupAsync.when(
                       data: (group) {
                         final currencyCode = group?.currencyCode ?? 'USD';
-                        final listItems = _flattenTransactions(transactions);
+                        final grouped = groupTransactionsByDate(transactions);
 
                         return RefreshIndicator(
                           onRefresh: () => ref
@@ -203,52 +187,59 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                 ).notifier,
                               )
                               .refresh(),
-                          child: ListView.separated(
+                          child: CustomScrollView(
                             controller: _scrollController,
                             key: const PageStorageKey('transaction_list'),
-                            padding: const EdgeInsets.all(AppTheme.space8),
-                            itemCount:
-                                listItems.length +
-                                (paginatedState.hasMore ? 1 : 0),
-                            separatorBuilder: (context, index) {
-                              if (index >= listItems.length) {
-                                return const SizedBox.shrink();
-                              }
-                              final currentItem = listItems[index];
-                              if (currentItem is DateTime) {
-                                return const SizedBox.shrink();
-                              }
-                              if (index + 1 < listItems.length) {
-                                final nextItem = listItems[index + 1];
-                                if (nextItem is DateTime) {
-                                  return const SizedBox.shrink();
-                                }
-                              }
-                              return const Divider();
-                            },
-                            itemBuilder: (context, index) {
-                              if (index == listItems.length) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(AppTheme.space16),
-                                    child: CircularProgressIndicator(),
+                            slivers: [
+                              const SliverToBoxAdapter(
+                                child: SizedBox(height: AppTheme.space8),
+                              ),
+                              for (final entry in grouped.entries) ...[
+                                SliverPersistentHeader(
+                                  pinned: true,
+                                  delegate: _DateHeaderDelegate(
+                                    date: entry.key,
                                   ),
-                                );
-                              }
-
-                              final item = listItems[index];
-                              if (item is DateTime) {
-                                return DateGroupHeader(date: item);
-                              }
-
-                              final tx = item as Transaction;
-                              return _TransactionListItem(
-                                key: ValueKey(tx.id),
-                                transaction: tx,
-                                memberMap: memberMap,
-                                currencyCode: currencyCode,
-                              );
-                            },
+                                ),
+                                SliverPadding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppTheme.space8,
+                                  ),
+                                  sliver: SliverList(
+                                    delegate: SliverChildBuilderDelegate((
+                                      context,
+                                      index,
+                                    ) {
+                                      final tx = entry.value[index];
+                                      return Column(
+                                        children: [
+                                          _TransactionListItem(
+                                            key: ValueKey(tx.id),
+                                            transaction: tx,
+                                            memberMap: memberMap,
+                                            currencyCode: currencyCode,
+                                          ),
+                                          if (index < entry.value.length - 1)
+                                            const Divider(),
+                                        ],
+                                      );
+                                    }, childCount: entry.value.length),
+                                  ),
+                                ),
+                              ],
+                              if (paginatedState.hasMore)
+                                const SliverToBoxAdapter(
+                                  child: Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(AppTheme.space16),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                ),
+                              const SliverToBoxAdapter(
+                                child: SizedBox(height: AppTheme.space32),
+                              ),
+                            ],
                           ),
                         );
                       },
@@ -429,6 +420,32 @@ class _ActiveFilterChips extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+class _DateHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final DateTime date;
+
+  _DateHeaderDelegate({required this.date});
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return DateGroupHeader(date: date, isStuck: overlapsContent);
+  }
+
+  @override
+  double get maxExtent => 48.0;
+
+  @override
+  double get minExtent => 48.0;
+
+  @override
+  bool shouldRebuild(covariant _DateHeaderDelegate oldDelegate) {
+    return oldDelegate.date != date;
   }
 }
 

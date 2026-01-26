@@ -1,11 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/app.dart';
 
 class DateGroupHeader extends StatelessWidget {
   final DateTime date;
+  final bool isStuck;
 
-  const DateGroupHeader({super.key, required this.date});
+  const DateGroupHeader({super.key, required this.date, this.isStuck = false});
 
   @override
   Widget build(BuildContext context) {
@@ -26,13 +28,54 @@ class DateGroupHeader extends StatelessWidget {
       label = DateFormat('MMMM d, yyyy').format(date);
     }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Theme.of(context).colorScheme.secondary,
-          fontWeight: FontWeight.bold,
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (!isStuck) {
+      return Container(
+        width: double.infinity,
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.secondary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      height: 48,
+      decoration: BoxDecoration(
+        color: isDark
+            ? theme.cardColor.withValues(alpha: 0.7)
+            : theme.cardColor.withValues(alpha: 0.8),
+        border: Border(
+          bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.1)),
+        ),
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.secondary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
