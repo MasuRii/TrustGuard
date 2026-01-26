@@ -8,6 +8,7 @@ import '../features/groups/presentation/home_screen.dart';
 import '../features/groups/presentation/members_screen.dart';
 import '../features/transactions/presentation/add_expense_screen.dart';
 import '../features/transactions/presentation/add_transfer_screen.dart';
+import '../features/transactions/presentation/tags_screen.dart';
 import '../features/transactions/presentation/transaction_detail_screen.dart';
 import '../features/transactions/presentation/transaction_list_screen.dart';
 
@@ -59,8 +60,10 @@ final router = GoRouter(
             ),
             GoRoute(
               path: 'tags',
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Tags'),
+              builder: (context, state) {
+                final id = state.pathParameters['id']!;
+                return TagsScreen(groupId: id);
+              },
             ),
             GoRoute(
               path: 'transactions',

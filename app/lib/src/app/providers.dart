@@ -4,6 +4,7 @@ import '../core/database/repositories/group_repository.dart';
 import '../core/database/repositories/member_repository.dart';
 import '../core/database/repositories/transaction_repository.dart';
 import '../core/database/repositories/tag_repository.dart';
+import '../core/models/tag_with_usage.dart';
 
 /// Provider for the [AppDatabase] singleton.
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -35,3 +36,11 @@ final tagRepositoryProvider = Provider<TagRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return DriftTagRepository(db);
 });
+
+/// Provider for watching tags with usage count for a group.
+final tagsWithUsageProvider = StreamProvider.family<List<TagWithUsage>, String>(
+  (ref, groupId) {
+    final repo = ref.watch(tagRepositoryProvider);
+    return repo.watchTagsWithUsageByGroup(groupId);
+  },
+);

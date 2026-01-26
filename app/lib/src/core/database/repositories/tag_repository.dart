@@ -2,10 +2,12 @@ import 'package:drift/drift.dart';
 import '../database.dart';
 import '../mappers/tag_mapper.dart';
 import '../../models/tag.dart' as model;
+import '../../models/tag_with_usage.dart';
 
 abstract class TagRepository {
   Future<List<model.Tag>> getTagsByGroup(String groupId);
   Stream<List<model.Tag>> watchTagsByGroup(String groupId);
+  Stream<List<TagWithUsage>> watchTagsWithUsageByGroup(String groupId);
   Future<void> createTag(model.Tag tag);
   Future<void> updateTag(model.Tag tag);
   Future<void> deleteTag(String tagId);
@@ -29,6 +31,30 @@ class DriftTagRepository implements TagRepository {
   Stream<List<model.Tag>> watchTagsByGroup(String groupId) {
     final query = _db.select(_db.tags)..where((t) => t.groupId.equals(groupId));
     return query.watch().map((rows) => rows.map(TagMapper.toModel).toList());
+  }
+
+  @override
+  Stream<List<TagWithUsage>> watchTagsWithUsageByGroup(String groupId) {
+    final countExp = _db.transactionTags.txId.count();
+    final query = _db.select(_db.tags).join([
+      leftOuterJoin(
+        _db.transactionTags,
+        _db.transactionTags.tagId.equalsExp(_db.tags.id),
+      ),
+    ]);
+
+    query.addColumns([countExp]);
+    query
+      ..where(_db.tags.groupId.equals(groupId))
+      ..groupBy([_db.tags.id]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        final tag = TagMapper.toModel(row.readTable(_db.tags));
+        final count = row.read(countExp) ?? 0;
+        return TagWithUsage(tag: tag, usageCount: count);
+      }).toList();
+    });
   }
 
   @override
