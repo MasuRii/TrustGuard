@@ -19,13 +19,30 @@ import '../features/settings/presentation/lock_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/settings/presentation/pin_setup_screen.dart';
 import '../features/settings/providers/lock_providers.dart';
+import '../features/onboarding/presentation/onboarding_screen.dart';
+import 'providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final lockState = ref.watch(appLockStateProvider);
+  final onboardingState = ref.watch(onboardingStateProvider);
 
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
+      // 1. Check onboarding first
+      final isOnboardingComplete = onboardingState.isComplete;
+      final goingToOnboarding = state.matchedLocation == '/onboarding';
+
+      if (!isOnboardingComplete) {
+        return goingToOnboarding ? null : '/onboarding';
+      }
+
+      // 2. If onboarding complete but still going to onboarding, redirect home
+      if (goingToOnboarding) {
+        return '/';
+      }
+
+      // 3. Handle lock state
       if (!lockState.isInitialized) return null;
 
       final isLocked = lockState.isLocked;
@@ -40,6 +57,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
       GoRoute(path: '/lock', builder: (context, state) => const LockScreen()),
       GoRoute(
         path: '/',
