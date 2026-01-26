@@ -501,14 +501,17 @@ class _TransactionListItem extends ConsumerWidget {
       ),
       child: ListTile(
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: isExpense
-              ? Colors.orange.withValues(alpha: 0.1)
-              : Colors.blue.withValues(alpha: 0.1),
-          child: Icon(
-            isExpense ? Icons.add_shopping_cart : Icons.sync_alt,
-            color: isExpense ? Colors.orange : Colors.blue,
-            size: 20,
+        leading: Hero(
+          tag: 'transaction_icon_${transaction.id}',
+          child: CircleAvatar(
+            backgroundColor: isExpense
+                ? Colors.orange.withValues(alpha: 0.1)
+                : Colors.blue.withValues(alpha: 0.1),
+            child: Icon(
+              isExpense ? Icons.add_shopping_cart : Icons.sync_alt,
+              color: isExpense ? Colors.orange : Colors.blue,
+              size: 20,
+            ),
           ),
         ),
         title: Row(

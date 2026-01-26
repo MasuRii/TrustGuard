@@ -146,13 +146,16 @@ class TransactionDetailScreen extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Icon(
-              tx.type == TransactionType.expense
-                  ? Icons.shopping_cart_outlined
-                  : Icons.swap_horiz,
-              color: tx.type == TransactionType.expense
-                  ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.primary,
+            Hero(
+              tag: 'transaction_icon_${tx.id}',
+              child: Icon(
+                tx.type == TransactionType.expense
+                    ? Icons.shopping_cart_outlined
+                    : Icons.swap_horiz,
+                color: tx.type == TransactionType.expense
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.primary,
+              ),
             ),
             const SizedBox(width: AppTheme.space8),
             Text(
@@ -508,18 +511,21 @@ class _AttachmentThumbnail extends StatelessWidget {
         onLongPress: onDelete,
         child: Stack(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.file(
-                File(attachment.path),
-                width: 120,
-                height: 120,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stack) => Container(
+            Hero(
+              tag: 'attachment_${attachment.id}',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(attachment.path),
                   width: 120,
                   height: 120,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.broken_image_outlined),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stack) => Container(
+                    width: 120,
+                    height: 120,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.broken_image_outlined),
+                  ),
                 ),
               ),
             ),
@@ -556,7 +562,12 @@ class _AttachmentThumbnail extends StatelessWidget {
           ),
           backgroundColor: Colors.black,
           body: Center(
-            child: InteractiveViewer(child: Image.file(File(attachment.path))),
+            child: InteractiveViewer(
+              child: Hero(
+                tag: 'attachment_${attachment.id}',
+                child: Image.file(File(attachment.path)),
+              ),
+            ),
           ),
         ),
       ),
