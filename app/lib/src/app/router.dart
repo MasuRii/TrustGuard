@@ -19,6 +19,7 @@ import '../features/settings/presentation/lock_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/settings/presentation/pin_setup_screen.dart';
 import '../features/settings/presentation/debug_logs_screen.dart';
+import '../features/settings/presentation/help_screen.dart';
 import '../features/settings/providers/lock_providers.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import 'providers.dart';
@@ -193,6 +194,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'debug-logs',
             builder: (context, state) => const DebugLogsScreen(),
+          ),
+          GoRoute(
+            path: 'help',
+            builder: (context, state) => const HelpScreen(),
           ),
         ],
       ),

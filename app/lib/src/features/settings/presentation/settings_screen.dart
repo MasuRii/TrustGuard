@@ -151,6 +151,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: const Text('Backup & Restore'),
             onTap: () => context.push('/settings/backup'),
           ),
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('Help & Privacy'),
+            subtitle: const Text('User guide and privacy policy'),
+            onTap: () => context.push('/settings/help'),
+          ),
           const Divider(),
           _buildSectionHeader(context, 'About'),
           ListTile(
@@ -169,16 +175,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   }
                 });
               }
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip_outlined),
-            title: const Text('Privacy Policy'),
-            subtitle: const Text(
-              'Fully offline, your data never leaves your device.',
-            ),
-            onTap: () {
-              // TODO: Show privacy policy
             },
           ),
           if (_developerMode || hasLogs) ...[
