@@ -82,6 +82,15 @@ class TransactionDetailScreen extends ConsumerWidget {
                         _buildHeader(context, tx, currency, formatMoney),
                         const Divider(height: AppTheme.space32),
                         _buildInfoSection(context, tx, memberMap),
+                        if (tx.expenseDetail?.exchangeRate != null) ...[
+                          const SizedBox(height: AppTheme.space12),
+                          _buildInfoRow(
+                            context,
+                            Icons.currency_exchange_outlined,
+                            'Original Amount',
+                            '${formatMoney(tx.expenseDetail!.originalAmountMinor ?? 0, currencyCode: tx.expenseDetail!.originalCurrencyCode ?? 'USD')} (Rate: ${tx.expenseDetail!.exchangeRate!.toStringAsFixed(4)})',
+                          ),
+                        ],
                         const SizedBox(height: AppTheme.space24),
                         if (tx.type == TransactionType.expense)
                           _buildSplitSection(

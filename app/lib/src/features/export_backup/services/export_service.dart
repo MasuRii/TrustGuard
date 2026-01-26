@@ -39,7 +39,9 @@ class ExportService {
     final List<String> csvRows = [];
 
     // Header
-    csvRows.add('Date,Type,Amount,Payer/From,Participants/To,Note,Tags');
+    csvRows.add(
+      'Date,Type,Amount,Payer/From,Participants/To,Note,Tags,Original Amount,Original Currency,Exchange Rate',
+    );
 
     final decimalDigits = _settingsService.getRoundingDecimalPlaces();
 
@@ -53,6 +55,9 @@ class ExportService {
       String amount = '';
       String from = '';
       String to = '';
+      String originalAmount = '';
+      String originalCurrency = '';
+      String exchangeRate = '';
 
       if (tx.type == TransactionType.expense && tx.expenseDetail != null) {
         amount = MoneyUtils.fromMinorUnits(
@@ -61,6 +66,14 @@ class ExportService {
         from = memberNames[tx.expenseDetail!.payerMemberId] ?? 'Unknown';
         to =
             '"${tx.expenseDetail!.participants.map((p) => memberNames[p.memberId] ?? 'Unknown').join(', ').replaceAll('"', '""')}"';
+
+        if (tx.expenseDetail!.exchangeRate != null) {
+          originalAmount = MoneyUtils.fromMinorUnits(
+            tx.expenseDetail!.originalAmountMinor ?? 0,
+          ).toStringAsFixed(decimalDigits);
+          originalCurrency = tx.expenseDetail!.originalCurrencyCode ?? '';
+          exchangeRate = tx.expenseDetail!.exchangeRate!.toString();
+        }
       } else if (tx.type == TransactionType.transfer &&
           tx.transferDetail != null) {
         amount = MoneyUtils.fromMinorUnits(
@@ -70,7 +83,9 @@ class ExportService {
         to = memberNames[tx.transferDetail!.toMemberId] ?? 'Unknown';
       }
 
-      csvRows.add('$date,$type,$amount,$from,$to,$note,$tags');
+      csvRows.add(
+        '$date,$type,$amount,$from,$to,$note,$tags,$originalAmount,$originalCurrency,$exchangeRate',
+      );
     }
 
     return csvRows.join('\n');
@@ -105,6 +120,15 @@ class ExportService {
     buffer.writeln(
       'Generated: ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
     );
+
+    final hasMultiCurrency = transactions.any(
+      (tx) => tx.expenseDetail?.exchangeRate != null,
+    );
+    if (hasMultiCurrency) {
+      buffer.writeln(
+        'Note: Some expenses were converted using manual exchange rates.',
+      );
+    }
     buffer.writeln();
 
     buffer.writeln('--- BALANCES ---');
