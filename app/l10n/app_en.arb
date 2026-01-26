@@ -235,5 +235,12 @@
   "monthlyTrend": "Monthly Trend",
   "period3Months": "3 Months",
   "period6Months": "6 Months",
-  "period12Months": "12 Months"
+  "period12Months": "12 Months",
+  "scanReceipt": "Scan Receipt",
+  "takePhoto": "Take Photo",
+  "chooseFromGallery": "Choose from Gallery",
+  "ocrConfidenceHigh": "High confidence",
+  "ocrConfidenceMedium": "Medium confidence - please verify",
+  "ocrConfidenceLow": "Low confidence - please verify",
+  "applyScannedData": "Apply"
 }

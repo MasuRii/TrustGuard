@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
@@ -14,6 +15,8 @@ import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
 import '../../../ui/components/member_avatar_selector.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../ocr/models/receipt_data.dart';
+import '../../ocr/providers/ocr_providers.dart';
 import 'widgets/split_preview_bar.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transactions_providers.dart';
@@ -51,6 +54,149 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
   bool _isDifferentCurrency = false;
   String _originalCurrencyCode = 'USD';
+
+  Future<void> _scanReceipt() async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(context.l10n.takePhoto),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(context.l10n.chooseFromGallery),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
+    final image = await picker.pickImage(source: source);
+    if (image == null) return;
+
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+
+    try {
+      final scanner = ref.read(receiptScannerServiceProvider);
+      final data = await scanner.scanReceipt(image.path);
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (data != null) {
+        _showOcrResultDialog(data);
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Could not scan receipt')));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error scanning receipt: $e')));
+    }
+  }
+
+  void _showOcrResultDialog(ReceiptData data) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.scanReceipt),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (data.suggestedMerchant != null) ...[
+              Text('Merchant:', style: Theme.of(context).textTheme.labelSmall),
+              Text(
+                data.suggestedMerchant!,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (data.suggestedAmount != null) ...[
+              Text('Amount:', style: Theme.of(context).textTheme.labelSmall),
+              Text(
+                data.suggestedAmount!.toStringAsFixed(2),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (data.suggestedDate != null) ...[
+              Text('Date:', style: Theme.of(context).textTheme.labelSmall),
+              Text(
+                DateFormat.yMMMd().format(data.suggestedDate!),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+            ],
+            Row(
+              children: [
+                Icon(
+                  data.confidence > 0.8
+                      ? Icons.verified
+                      : (data.confidence > 0.4 ? Icons.info : Icons.warning),
+                  size: 16,
+                  color: data.confidence > 0.8
+                      ? Colors.green
+                      : (data.confidence > 0.4 ? Colors.orange : Colors.red),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  data.confidence > 0.8
+                      ? context.l10n.ocrConfidenceHigh
+                      : (data.confidence > 0.4
+                            ? context.l10n.ocrConfidenceMedium
+                            : context.l10n.ocrConfidenceLow),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: data.confidence > 0.8
+                        ? Colors.green
+                        : (data.confidence > 0.4 ? Colors.orange : Colors.red),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                if (data.suggestedAmount != null) {
+                  _amountController.text = data.suggestedAmount!
+                      .toStringAsFixed(2);
+                }
+                if (data.suggestedMerchant != null) {
+                  _noteController.text = data.suggestedMerchant!;
+                }
+                if (data.suggestedDate != null) {
+                  _occurredAt = data.suggestedDate!;
+                }
+              });
+              Navigator.pop(context);
+            },
+            child: Text(context.l10n.applyScannedData),
+          ),
+        ],
+      ),
+    );
+  }
 
   static const _commonCurrencies = [
     'USD',
@@ -299,12 +445,18 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       appBar: AppBar(
         title: Text(isEdit ? 'Edit Expense' : 'Add Expense'),
         actions: [
-          if (!_isLoading)
+          if (!_isLoading) ...[
+            IconButton(
+              onPressed: _scanReceipt,
+              icon: const Icon(Icons.document_scanner),
+              tooltip: context.l10n.scanReceipt,
+            ),
             IconButton(
               onPressed: _save,
               icon: const Icon(Icons.check),
               tooltip: 'Save',
             ),
+          ],
         ],
       ),
       body: membersAsync.when(

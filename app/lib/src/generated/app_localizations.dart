@@ -825,6 +825,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'12 Months'**
   String get period12Months;
+
+  /// No description provided for @scanReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Receipt'**
+  String get scanReceipt;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @ocrConfidenceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High confidence'**
+  String get ocrConfidenceHigh;
+
+  /// No description provided for @ocrConfidenceMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium confidence - please verify'**
+  String get ocrConfidenceMedium;
+
+  /// No description provided for @ocrConfidenceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low confidence - please verify'**
+  String get ocrConfidenceLow;
+
+  /// No description provided for @applyScannedData.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get applyScannedData;
 }
 
 class _AppLocalizationsDelegate

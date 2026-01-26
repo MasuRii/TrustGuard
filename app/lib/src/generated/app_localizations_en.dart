@@ -434,4 +434,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get period12Months => '12 Months';
+
+  @override
+  String get scanReceipt => 'Scan Receipt';
+
+  @override
+  String get takePhoto => 'Take Photo';
+
+  @override
+  String get chooseFromGallery => 'Choose from Gallery';
+
+  @override
+  String get ocrConfidenceHigh => 'High confidence';
+
+  @override
+  String get ocrConfidenceMedium => 'Medium confidence - please verify';
+
+  @override
+  String get ocrConfidenceLow => 'Low confidence - please verify';
+
+  @override
+  String get applyScannedData => 'Apply';
 }
