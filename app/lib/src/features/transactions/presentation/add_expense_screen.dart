@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
+import '../../../app/app.dart';
 import '../../../core/models/expense.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
+import '../../../ui/components/member_avatar_selector.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transactions_providers.dart';
@@ -391,30 +393,18 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             const SizedBox(height: AppTheme.space16),
                             _buildTagsSection(),
                             const SizedBox(height: AppTheme.space24),
-                            Text(
-                              'Paid by',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: AppTheme.space8),
-                            DropdownButtonFormField<String>(
-                              initialValue: _payerMemberId,
-                              items: members.map((m) {
-                                return DropdownMenuItem(
-                                  value: m.id,
-                                  child: Text(m.displayName),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => _payerMemberId = value);
+                            MemberAvatarSelector(
+                              label: context.l10n.paidBy,
+                              members: members,
+                              selectedIds: _payerMemberId != null
+                                  ? {_payerMemberId!}
+                                  : {},
+                              onSelectionChanged: (ids) {
+                                if (ids.isNotEmpty) {
+                                  setState(() => _payerMemberId = ids.first);
                                 }
                               },
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                              ),
+                              allowMultiple: false,
                             ),
                             const SizedBox(height: AppTheme.space24),
                             Row(
