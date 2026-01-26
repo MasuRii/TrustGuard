@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/transfer.dart';
+import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
@@ -41,6 +42,7 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
   DateTime _occurredAt = DateTime.now();
   String? _fromMemberId;
   String? _toMemberId;
+  final Set<String> _selectedTagIds = {};
   bool _isLoading = false;
   bool _isInitialized = false;
   DateTime _createdAt = DateTime.now();
@@ -101,6 +103,10 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
 
     try {
       final repository = ref.read(transactionRepositoryProvider);
+      final allTags = ref.read(tagsProvider(widget.groupId)).value ?? [];
+      final selectedTags = allTags
+          .where((t) => _selectedTagIds.contains(t.id))
+          .toList();
       final now = DateTime.now();
 
       final transaction = Transaction(
@@ -116,6 +122,7 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
           toMemberId: _toMemberId!,
           amountMinor: amountMinor,
         ),
+        tags: selectedTags,
       );
 
       if (widget.transactionId == null) {
@@ -140,6 +147,46 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
     }
   }
 
+  Widget _buildTagsSection() {
+    final tagsAsync = ref.watch(tagsProvider(widget.groupId));
+
+    return tagsAsync.when(
+      data: (List<Tag> tags) {
+        if (tags.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tags', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: AppTheme.space8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 0,
+              children: tags.map((tag) {
+                final isSelected = _selectedTagIds.contains(tag.id);
+                return FilterChip(
+                  label: Text(tag.name),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedTagIds.add(tag.id);
+                      } else {
+                        _selectedTagIds.remove(tag.id);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
@@ -158,6 +205,8 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
           _createdAt = tx.createdAt;
           _fromMemberId = tx.transferDetail!.fromMemberId;
           _toMemberId = tx.transferDetail!.toMemberId;
+          _selectedTagIds.clear();
+          _selectedTagIds.addAll(tx.tags.map((t) => t.id));
           _isInitialized = true;
           setState(() {});
         }
@@ -259,6 +308,8 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
+                            const SizedBox(height: AppTheme.space16),
+                            _buildTagsSection(),
                             const SizedBox(height: AppTheme.space24),
                             Text(
                               'From',

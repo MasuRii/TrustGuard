@@ -108,4 +108,17 @@ class TransactionMapper {
       amountMinor: Value(detail.amountMinor),
     );
   }
+
+  static List<TransactionTagsCompanion> toTransactionTagsCompanions(
+    model.Transaction domain,
+  ) {
+    return domain.tags
+        .map(
+          (t) => TransactionTagsCompanion(
+            txId: Value(domain.id),
+            tagId: Value(t.id),
+          ),
+        )
+        .toList();
+  }
 }

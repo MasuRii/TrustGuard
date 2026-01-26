@@ -145,6 +145,15 @@ class DriftTransactionRepository implements TransactionRepository {
       if (transferCompanion != null) {
         await _db.into(_db.transferDetails).insert(transferCompanion);
       }
+
+      final tagsCompanions = TransactionMapper.toTransactionTagsCompanions(
+        transaction,
+      );
+      if (tagsCompanions.isNotEmpty) {
+        await _db.batch((batch) {
+          batch.insertAll(_db.transactionTags, tagsCompanions);
+        });
+      }
     });
   }
 
@@ -199,6 +208,19 @@ class DriftTransactionRepository implements TransactionRepository {
         await (_db.delete(
           _db.transferDetails,
         )..where((t) => t.txId.equals(transaction.id))).go();
+      }
+
+      // Handle tags: delete old ones and insert new ones
+      await (_db.delete(
+        _db.transactionTags,
+      )..where((t) => t.txId.equals(transaction.id))).go();
+      final tagsCompanions = TransactionMapper.toTransactionTagsCompanions(
+        transaction,
+      );
+      if (tagsCompanions.isNotEmpty) {
+        await _db.batch((batch) {
+          batch.insertAll(_db.transactionTags, tagsCompanions);
+        });
       }
     });
   }

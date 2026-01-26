@@ -5,6 +5,7 @@ import '../core/database/repositories/member_repository.dart';
 import '../core/database/repositories/transaction_repository.dart';
 import '../core/database/repositories/tag_repository.dart';
 import '../core/models/tag_with_usage.dart';
+import '../core/models/tag.dart' as model;
 
 /// Provider for the [AppDatabase] singleton.
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -44,3 +45,12 @@ final tagsWithUsageProvider = StreamProvider.family<List<TagWithUsage>, String>(
     return repo.watchTagsWithUsageByGroup(groupId);
   },
 );
+
+/// Provider for watching all tags in a group.
+final tagsProvider = StreamProvider.family<List<model.Tag>, String>((
+  ref,
+  groupId,
+) {
+  final repo = ref.watch(tagRepositoryProvider);
+  return repo.watchTagsByGroup(groupId);
+});
