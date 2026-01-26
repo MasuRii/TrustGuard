@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app/providers.dart';
+import '../../../core/models/reminder_settings.dart';
 import '../../../ui/theme/app_theme.dart';
 import 'groups_providers.dart';
 
@@ -46,6 +48,16 @@ class GroupOverviewScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppTheme.space8),
                 _buildMembersPlaceholder(context),
+                const SizedBox(height: AppTheme.space24),
+                _buildSectionHeader(
+                  context,
+                  title: 'Reminders',
+                  actionLabel: 'Settings',
+                  onActionPressed: () =>
+                      context.push('/group/${group.id}/reminders'),
+                ),
+                const SizedBox(height: AppTheme.space8),
+                _buildReminderStatus(context, ref),
                 const SizedBox(height: AppTheme.space24),
                 _buildSectionHeader(context, title: 'Quick Actions'),
                 const SizedBox(height: AppTheme.space16),
@@ -148,6 +160,45 @@ class GroupOverviewScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildReminderStatus(BuildContext context, WidgetRef ref) {
+    final settingsAsync = ref.watch(reminderSettingsProvider(groupId));
+
+    return settingsAsync.when(
+      data: (settings) {
+        final isEnabled = settings?.enabled ?? false;
+        final schedule = settings?.schedule ?? ReminderSchedule.daily;
+
+        return Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.space12),
+            side: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+          child: ListTile(
+            leading: Icon(
+              isEnabled ? Icons.notifications_active : Icons.notifications_off,
+              color: isEnabled
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.grey,
+            ),
+            title: Text(isEnabled ? 'Reminders Enabled' : 'Reminders Disabled'),
+            subtitle: isEnabled
+                ? Text(
+                    'Schedule: ${schedule.name[0].toUpperCase()}${schedule.name.substring(1)}',
+                  )
+                : const Text('Turn on to receive notifications'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/group/$groupId/reminders'),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Text('Error: $err'),
     );
   }
 

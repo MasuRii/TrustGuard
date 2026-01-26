@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import '../models/transaction.dart';
 import '../models/expense.dart';
+import '../models/reminder_settings.dart';
 import 'tables/groups.dart';
 import 'tables/members.dart';
 import 'tables/transactions.dart';
@@ -10,6 +11,7 @@ import 'tables/expense_participants.dart';
 import 'tables/transfer_details.dart';
 import 'tables/tags.dart';
 import 'tables/transaction_tags.dart';
+import 'tables/group_reminders.dart';
 
 import 'tables/attachments.dart';
 
@@ -26,6 +28,7 @@ part 'database.g.dart';
     Tags,
     TransactionTags,
     Attachments,
+    GroupReminders,
   ],
 )
 class AppDatabase extends _$AppDatabase {

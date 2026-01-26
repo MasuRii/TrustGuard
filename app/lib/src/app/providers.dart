@@ -7,9 +7,11 @@ import '../core/database/repositories/group_repository.dart';
 import '../core/database/repositories/member_repository.dart';
 import '../core/database/repositories/transaction_repository.dart';
 import '../core/database/repositories/tag_repository.dart';
+import '../core/database/repositories/reminder_repository.dart';
 import '../core/platform/app_lock_service.dart';
 import '../core/platform/notification_service.dart';
 import '../core/models/tag_with_usage.dart';
+import '../core/models/reminder_settings.dart';
 import '../core/models/tag.dart' as model;
 
 /// Provider for the [AppDatabase] singleton.
@@ -61,6 +63,19 @@ final tagRepositoryProvider = Provider<TagRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return DriftTagRepository(db);
 });
+
+/// Provider for [ReminderRepository].
+final reminderRepositoryProvider = Provider<ReminderRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftReminderRepository(db);
+});
+
+/// Provider for watching reminder settings for a group.
+final reminderSettingsProvider =
+    StreamProvider.family<ReminderSettings?, String>((ref, groupId) {
+      final repo = ref.watch(reminderRepositoryProvider);
+      return repo.watchReminderSettings(groupId);
+    });
 
 /// Provider for watching tags with usage count for a group.
 final tagsWithUsageProvider = StreamProvider.family<List<TagWithUsage>, String>(
