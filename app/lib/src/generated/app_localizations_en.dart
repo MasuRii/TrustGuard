@@ -331,4 +331,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paidBy => 'Paid by';
+
+  @override
+  String get swipeToEdit => 'Edit';
+
+  @override
+  String get swipeToDelete => 'Delete';
+
+  @override
+  String get deleteTransaction => 'Delete Transaction';
+
+  @override
+  String get deleteTransactionConfirm =>
+      'Are you sure you want to delete this transaction?';
+
+  @override
+  String get transactionDeleted => 'Transaction deleted';
+
+  @override
+  String get undo => 'Undo';
 }

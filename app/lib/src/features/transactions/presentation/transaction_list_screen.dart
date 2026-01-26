@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../app/providers.dart';
@@ -468,81 +469,158 @@ class _TransactionListItem extends ConsumerWidget {
       subTitle = '$fromName → $toName';
     }
 
-    return ListTile(
-      onTap: onTap,
-      leading: CircleAvatar(
-        backgroundColor: isExpense
-            ? Colors.orange.withValues(alpha: 0.1)
-            : Colors.blue.withValues(alpha: 0.1),
-        child: Icon(
-          isExpense ? Icons.add_shopping_cart : Icons.sync_alt,
-          color: isExpense ? Colors.orange : Colors.blue,
-          size: 20,
-        ),
-      ),
-      title: Row(
+    return Slidable(
+      key: ValueKey(transaction.id),
+      startActionPane: ActionPane(
+        motion: const DrawerMotion(),
         children: [
-          Expanded(
-            child: Text(
-              transaction.note.isNotEmpty
-                  ? transaction.note
-                  : context.l10n.noNote,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: AppTheme.space8),
-          Text(
-            formatMoney(amount, currencyCode: currencyCode),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isExpense ? Colors.red[700] : Colors.blue[700],
-            ),
+          SlidableAction(
+            onPressed: (context) {
+              final route = isExpense
+                  ? '/group/${transaction.groupId}/transactions/add-expense?txId=${transaction.id}'
+                  : '/group/${transaction.groupId}/transactions/add-transfer?txId=${transaction.id}';
+              context.push(route);
+            },
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            icon: Icons.edit,
+            label: context.l10n.swipeToEdit,
           ),
         ],
       ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(subTitle),
-              Text(
-                dateStr,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-              ),
-            ],
+          SlidableAction(
+            onPressed: (context) => _confirmDelete(context, ref),
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: context.l10n.swipeToDelete,
           ),
-          if (transaction.tags.isNotEmpty) ...[
-            const SizedBox(height: AppTheme.space4),
-            Wrap(
-              spacing: AppTheme.space4,
-              children: transaction.tags.map((tag) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    tag.name,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                    ),
-                  ),
-                );
-              }).toList(),
+        ],
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: CircleAvatar(
+          backgroundColor: isExpense
+              ? Colors.orange.withValues(alpha: 0.1)
+              : Colors.blue.withValues(alpha: 0.1),
+          child: Icon(
+            isExpense ? Icons.add_shopping_cart : Icons.sync_alt,
+            color: isExpense ? Colors.orange : Colors.blue,
+            size: 20,
+          ),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                transaction.note.isNotEmpty
+                    ? transaction.note
+                    : context.l10n.noNote,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: AppTheme.space8),
+            Text(
+              formatMoney(amount, currencyCode: currencyCode),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: isExpense ? Colors.red[700] : Colors.blue[700],
+              ),
             ),
           ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(subTitle),
+                Text(
+                  dateStr,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
+            if (transaction.tags.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.space4),
+              Wrap(
+                spacing: AppTheme.space4,
+                children: transaction.tags.map((tag) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      tag.name,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.deleteTransaction),
+        content: Text(context.l10n.deleteTransactionConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(context.l10n.swipeToDelete),
+          ),
         ],
       ),
     );
+
+    if (confirmed == true) {
+      await ref
+          .read(transactionRepositoryProvider)
+          .softDeleteTransaction(transaction.id);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.transactionDeleted),
+            action: SnackBarAction(
+              label: context.l10n.undo,
+              onPressed: () {
+                ref
+                    .read(transactionRepositoryProvider)
+                    .undoSoftDeleteTransaction(transaction.id);
+              },
+            ),
+          ),
+        );
+      }
+    }
   }
 }
