@@ -5,6 +5,7 @@ import '../../models/transaction.dart' as model;
 import '../../models/transaction_filter.dart';
 
 abstract class TransactionRepository {
+  Future<List<model.Transaction>> getAllTransactions();
   Future<List<model.Transaction>> getTransactionsByGroup(
     String groupId, {
     bool includeDeleted = false,
@@ -26,6 +27,23 @@ class DriftTransactionRepository implements TransactionRepository {
   final AppDatabase _db;
 
   DriftTransactionRepository(this._db);
+
+  @override
+  Future<List<model.Transaction>> getAllTransactions() async {
+    final query = _db.select(_db.transactions).join([
+      leftOuterJoin(
+        _db.expenseDetails,
+        _db.expenseDetails.txId.equalsExp(_db.transactions.id),
+      ),
+      leftOuterJoin(
+        _db.transferDetails,
+        _db.transferDetails.txId.equalsExp(_db.transactions.id),
+      ),
+    ]);
+
+    final rows = await query.get();
+    return _mapRowsToTransactions(rows);
+  }
 
   @override
   Future<List<model.Transaction>> getTransactionsByGroup(

@@ -4,6 +4,7 @@ import '../mappers/member_mapper.dart';
 import '../../models/member.dart' as model;
 
 abstract class MemberRepository {
+  Future<List<model.Member>> getAllMembers();
   Future<List<model.Member>> getMembersByGroup(
     String groupId, {
     bool includeRemoved = false,
@@ -23,6 +24,12 @@ class DriftMemberRepository implements MemberRepository {
   final AppDatabase _db;
 
   DriftMemberRepository(this._db);
+
+  @override
+  Future<List<model.Member>> getAllMembers() async {
+    final rows = await _db.select(_db.members).get();
+    return rows.map(MemberMapper.toModel).toList();
+  }
 
   @override
   Future<List<model.Member>> getMembersByGroup(

@@ -3,6 +3,7 @@ import '../../models/reminder_settings.dart';
 import '../mappers/reminder_mapper.dart';
 
 abstract class ReminderRepository {
+  Future<List<ReminderSettings>> getAllReminderSettings();
   Future<ReminderSettings?> getReminderSettings(String groupId);
   Stream<ReminderSettings?> watchReminderSettings(String groupId);
   Future<void> upsertReminderSettings(ReminderSettings settings);
@@ -12,6 +13,12 @@ class DriftReminderRepository implements ReminderRepository {
   final AppDatabase _db;
 
   DriftReminderRepository(this._db);
+
+  @override
+  Future<List<ReminderSettings>> getAllReminderSettings() async {
+    final rows = await _db.select(_db.groupReminders).get();
+    return rows.map(ReminderMapper.toModel).toList();
+  }
 
   @override
   Future<ReminderSettings?> getReminderSettings(String groupId) async {

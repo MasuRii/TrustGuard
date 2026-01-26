@@ -14,6 +14,7 @@ import '../core/models/tag_with_usage.dart';
 import '../core/models/reminder_settings.dart';
 import '../core/models/tag.dart' as model;
 import '../features/export_backup/services/export_service.dart';
+import '../features/export_backup/services/backup_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -102,5 +103,16 @@ final exportServiceProvider = Provider<ExportService>((ref) {
   return ExportService(
     transactionRepository: transactionRepository,
     memberRepository: memberRepository,
+  );
+});
+
+/// Provider for [BackupService].
+final backupServiceProvider = Provider<BackupService>((ref) {
+  return BackupService(
+    groupRepository: ref.watch(groupRepositoryProvider),
+    memberRepository: ref.watch(memberRepositoryProvider),
+    transactionRepository: ref.watch(transactionRepositoryProvider),
+    tagRepository: ref.watch(tagRepositoryProvider),
+    reminderRepository: ref.watch(reminderRepositoryProvider),
   );
 });

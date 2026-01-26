@@ -5,6 +5,7 @@ import '../../models/tag.dart' as model;
 import '../../models/tag_with_usage.dart';
 
 abstract class TagRepository {
+  Future<List<model.Tag>> getAllTags();
   Future<List<model.Tag>> getTagsByGroup(String groupId);
   Stream<List<model.Tag>> watchTagsByGroup(String groupId);
   Stream<List<TagWithUsage>> watchTagsWithUsageByGroup(String groupId);
@@ -19,6 +20,12 @@ class DriftTagRepository implements TagRepository {
   final AppDatabase _db;
 
   DriftTagRepository(this._db);
+
+  @override
+  Future<List<model.Tag>> getAllTags() async {
+    final rows = await _db.select(_db.tags).get();
+    return rows.map(TagMapper.toModel).toList();
+  }
 
   @override
   Future<List<model.Tag>> getTagsByGroup(String groupId) async {
