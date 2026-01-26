@@ -20,6 +20,7 @@ import '../features/export_backup/services/backup_service.dart';
 import '../features/settings/services/settings_service.dart';
 import '../features/onboarding/services/onboarding_service.dart';
 import '../features/onboarding/models/onboarding_state.dart';
+import '../core/platform/local_log_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -197,3 +198,8 @@ final onboardingStateProvider =
     NotifierProvider<OnboardingNotifier, OnboardingState>(
       OnboardingNotifier.new,
     );
+
+/// Provider for [LocalLogService].
+final localLogServiceProvider = Provider<LocalLogService>((ref) {
+  return LocalLogService();
+});
