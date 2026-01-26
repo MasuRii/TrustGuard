@@ -15,11 +15,19 @@ import 'transactions_providers.dart';
 class AddTransferScreen extends ConsumerStatefulWidget {
   final String groupId;
   final String? transactionId;
+  final String? initialFromId;
+  final String? initialToId;
+  final String? initialAmount;
+  final String? initialNote;
 
   const AddTransferScreen({
     super.key,
     required this.groupId,
     this.transactionId,
+    this.initialFromId,
+    this.initialToId,
+    this.initialAmount,
+    this.initialNote,
   });
 
   @override
@@ -177,8 +185,18 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
           }
 
           if (!_isInitialized && !isEdit) {
-            _fromMemberId ??= members[0].id;
-            _toMemberId ??= members[1].id;
+            _fromMemberId =
+                widget.initialFromId ??
+                (members.isNotEmpty ? members[0].id : null);
+            _toMemberId =
+                widget.initialToId ??
+                (members.length > 1 ? members[1].id : null);
+            if (widget.initialAmount != null) {
+              _amountController.text = widget.initialAmount!;
+            }
+            if (widget.initialNote != null) {
+              _noteController.text = widget.initialNote!;
+            }
             _isInitialized = true;
           }
 

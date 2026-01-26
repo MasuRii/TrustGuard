@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../features/balances/presentation/balances_screen.dart';
+import '../features/balances/presentation/settlements_screen.dart';
 import '../features/groups/presentation/group_form_screen.dart';
 import '../features/groups/presentation/group_overview_screen.dart';
 import '../features/groups/presentation/home_screen.dart';
@@ -43,13 +45,17 @@ final router = GoRouter(
             ),
             GoRoute(
               path: 'balances',
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Balances'),
+              builder: (context, state) {
+                final id = state.pathParameters['id']!;
+                return BalancesScreen(groupId: id);
+              },
             ),
             GoRoute(
               path: 'settlements',
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Settlements'),
+              builder: (context, state) {
+                final id = state.pathParameters['id']!;
+                return SettlementsScreen(groupId: id);
+              },
             ),
             GoRoute(
               path: 'tags',
@@ -76,7 +82,18 @@ final router = GoRouter(
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;
                     final txId = state.uri.queryParameters['txId'];
-                    return AddTransferScreen(groupId: id, transactionId: txId);
+                    final fromId = state.uri.queryParameters['fromId'];
+                    final toId = state.uri.queryParameters['toId'];
+                    final amount = state.uri.queryParameters['amount'];
+                    final note = state.uri.queryParameters['note'];
+                    return AddTransferScreen(
+                      groupId: id,
+                      transactionId: txId,
+                      initialFromId: fromId,
+                      initialToId: toId,
+                      initialAmount: amount,
+                      initialNote: note,
+                    );
                   },
                 ),
                 GoRoute(
