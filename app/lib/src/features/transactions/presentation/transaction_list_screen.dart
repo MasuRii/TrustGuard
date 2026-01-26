@@ -12,18 +12,51 @@ import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transaction_filter_sheet.dart';
 import 'transactions_providers.dart';
+import '../providers/paginated_transactions_provider.dart';
 
-class TransactionListScreen extends ConsumerWidget {
+class TransactionListScreen extends ConsumerStatefulWidget {
   final String groupId;
 
   const TransactionListScreen({super.key, required this.groupId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(transactionsByGroupProvider(groupId));
-    final membersAsync = ref.watch(membersByGroupProvider(groupId));
-    final groupAsync = ref.watch(groupStreamProvider(groupId));
-    final filter = ref.watch(transactionFilterProvider(groupId));
+  ConsumerState<TransactionListScreen> createState() =>
+      _TransactionListScreenState();
+}
+
+class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.8) {
+      ref
+          .read(paginatedTransactionsProvider(widget.groupId).notifier)
+          .loadMore();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final transactionsAsync = ref.watch(
+      paginatedTransactionsProvider(widget.groupId),
+    );
+    final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
+    final groupAsync = ref.watch(groupStreamProvider(widget.groupId));
+    final filter = ref.watch(transactionFilterProvider(widget.groupId));
 
     return Scaffold(
       appBar: AppBar(
@@ -39,7 +72,8 @@ class TransactionListScreen extends ConsumerWidget {
                 context: context,
                 isScrollControlled: true,
                 useSafeArea: true,
-                builder: (context) => TransactionFilterSheet(groupId: groupId),
+                builder: (context) =>
+                    TransactionFilterSheet(groupId: widget.groupId),
               );
             },
             tooltip: 'Filter Transactions',
@@ -62,7 +96,9 @@ class TransactionListScreen extends ConsumerWidget {
                           onPressed: () {
                             ref
                                 .read(
-                                  transactionFilterProvider(groupId).notifier,
+                                  transactionFilterProvider(
+                                    widget.groupId,
+                                  ).notifier,
                                 )
                                 .state = filter.copyWith(
                               searchQuery: '',
@@ -77,17 +113,21 @@ class TransactionListScreen extends ConsumerWidget {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
                 onChanged: (value) {
-                  ref.read(transactionFilterProvider(groupId).notifier).state =
-                      filter.copyWith(searchQuery: value);
+                  ref
+                      .read(transactionFilterProvider(widget.groupId).notifier)
+                      .state = filter.copyWith(
+                    searchQuery: value,
+                  );
                 },
               ),
             ),
           ),
 
-          if (!filter.isEmpty) _ActiveFilterChips(groupId: groupId),
+          if (!filter.isEmpty) _ActiveFilterChips(groupId: widget.groupId),
           Expanded(
             child: transactionsAsync.when(
-              data: (transactions) {
+              data: (paginatedState) {
+                final transactions = paginatedState.transactions;
                 if (transactions.isEmpty) {
                   return filter.isEmpty
                       ? EmptyState(
@@ -97,7 +137,7 @@ class TransactionListScreen extends ConsumerWidget {
                               'Add your first expense or transfer to get started.',
                           actionLabel: 'Add Expense',
                           onActionPressed: () => context.push(
-                            '/group/$groupId/transactions/add-expense',
+                            '/group/${widget.groupId}/transactions/add-expense',
                           ),
                         )
                       : EmptyState(
@@ -109,7 +149,7 @@ class TransactionListScreen extends ConsumerWidget {
                             ref
                                     .read(
                                       transactionFilterProvider(
-                                        groupId,
+                                        widget.groupId,
                                       ).notifier,
                                     )
                                     .state =
@@ -129,16 +169,32 @@ class TransactionListScreen extends ConsumerWidget {
                         final currencyCode = group?.currencyCode ?? 'USD';
 
                         return RefreshIndicator(
-                          onRefresh: () => ref.refresh(
-                            transactionsByGroupProvider(groupId).future,
-                          ),
+                          onRefresh: () => ref
+                              .read(
+                                paginatedTransactionsProvider(
+                                  widget.groupId,
+                                ).notifier,
+                              )
+                              .refresh(),
                           child: ListView.separated(
+                            controller: _scrollController,
                             key: const PageStorageKey('transaction_list'),
                             padding: const EdgeInsets.all(AppTheme.space8),
-                            itemCount: transactions.length,
+                            itemCount:
+                                transactions.length +
+                                (paginatedState.hasMore ? 1 : 0),
                             separatorBuilder: (context, index) =>
                                 const Divider(),
                             itemBuilder: (context, index) {
+                              if (index == transactions.length) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(AppTheme.space16),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+
                               final tx = transactions[index];
                               return _TransactionListItem(
                                 key: ValueKey(tx.id),
@@ -146,7 +202,7 @@ class TransactionListScreen extends ConsumerWidget {
                                 memberMap: memberMap,
                                 currencyCode: currencyCode,
                                 onTap: () => context.push(
-                                  '/group/$groupId/transactions/${tx.id}',
+                                  '/group/${widget.groupId}/transactions/${tx.id}',
                                 ),
                               );
                             },
@@ -194,7 +250,9 @@ class TransactionListScreen extends ConsumerWidget {
               title: const Text('Add Expense'),
               onTap: () {
                 context.pop();
-                context.push('/group/$groupId/transactions/add-expense');
+                context.push(
+                  '/group/${widget.groupId}/transactions/add-expense',
+                );
               },
             ),
             ListTile(
@@ -202,7 +260,9 @@ class TransactionListScreen extends ConsumerWidget {
               title: const Text('Add Transfer'),
               onTap: () {
                 context.pop();
-                context.push('/group/$groupId/transactions/add-transfer');
+                context.push(
+                  '/group/${widget.groupId}/transactions/add-transfer',
+                );
               },
             ),
           ],
