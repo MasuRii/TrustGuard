@@ -14,6 +14,8 @@ import '../../groups/presentation/groups_providers.dart';
 import 'transaction_filter_sheet.dart';
 import 'transactions_providers.dart';
 import '../providers/paginated_transactions_provider.dart';
+import '../utils/transaction_grouper.dart';
+import 'widgets/date_group_header.dart';
 
 class TransactionListScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -48,6 +50,22 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           .read(paginatedTransactionsProvider(widget.groupId).notifier)
           .loadMore();
     }
+  }
+
+  List<dynamic> _flattenTransactions(List<Transaction> transactions) {
+    if (transactions.isEmpty) return [];
+
+    final Map<DateTime, List<Transaction>> grouped = groupTransactionsByDate(
+      transactions,
+    );
+    final List<dynamic> items = [];
+
+    grouped.forEach((date, txs) {
+      items.add(date);
+      items.addAll(txs);
+    });
+
+    return items;
   }
 
   @override
@@ -167,6 +185,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     return groupAsync.when(
                       data: (group) {
                         final currencyCode = group?.currencyCode ?? 'USD';
+                        final listItems = _flattenTransactions(transactions);
 
                         return RefreshIndicator(
                           onRefresh: () => ref
@@ -181,12 +200,26 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                             key: const PageStorageKey('transaction_list'),
                             padding: const EdgeInsets.all(AppTheme.space8),
                             itemCount:
-                                transactions.length +
+                                listItems.length +
                                 (paginatedState.hasMore ? 1 : 0),
-                            separatorBuilder: (context, index) =>
-                                const Divider(),
+                            separatorBuilder: (context, index) {
+                              if (index >= listItems.length) {
+                                return const SizedBox.shrink();
+                              }
+                              final currentItem = listItems[index];
+                              if (currentItem is DateTime) {
+                                return const SizedBox.shrink();
+                              }
+                              if (index + 1 < listItems.length) {
+                                final nextItem = listItems[index + 1];
+                                if (nextItem is DateTime) {
+                                  return const SizedBox.shrink();
+                                }
+                              }
+                              return const Divider();
+                            },
                             itemBuilder: (context, index) {
-                              if (index == transactions.length) {
+                              if (index == listItems.length) {
                                 return const Center(
                                   child: Padding(
                                     padding: EdgeInsets.all(AppTheme.space16),
@@ -195,7 +228,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                 );
                               }
 
-                              final tx = transactions[index];
+                              final item = listItems[index];
+                              if (item is DateTime) {
+                                return DateGroupHeader(date: item);
+                              }
+
+                              final tx = item as Transaction;
                               return _TransactionListItem(
                                 key: ValueKey(tx.id),
                                 transaction: tx,
