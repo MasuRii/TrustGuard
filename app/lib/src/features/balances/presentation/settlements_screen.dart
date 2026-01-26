@@ -1,3 +1,4 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,125 +7,179 @@ import '../../../app/providers.dart';
 import '../../../core/models/member.dart';
 import '../../../core/models/settlement_suggestion.dart';
 import '../../../core/utils/money.dart';
+import '../../../ui/animations/animation_config.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../groups/presentation/groups_providers.dart';
 import '../providers/balance_providers.dart';
 import '../services/balance_service.dart';
-import '../services/settlement_service.dart';
 
-class SettlementsScreen extends ConsumerWidget {
+class SettlementsScreen extends ConsumerStatefulWidget {
   final String groupId;
 
   const SettlementsScreen({super.key, required this.groupId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final balancesAsync = ref.watch(groupBalancesProvider(groupId));
-    final groupAsync = ref.watch(groupStreamProvider(groupId));
-    final membersAsync = ref.watch(membersByGroupProvider(groupId));
-    final selfMemberId = ref.watch(groupSelfMemberProvider(groupId));
+  ConsumerState<SettlementsScreen> createState() => _SettlementsScreenState();
+}
+
+class _SettlementsScreenState extends ConsumerState<SettlementsScreen> {
+  late ConfettiController _confettiController;
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 3),
+    );
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final balancesAsync = ref.watch(groupBalancesProvider(widget.groupId));
+    final groupAsync = ref.watch(groupStreamProvider(widget.groupId));
+    final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
+    final selfMemberId = ref.watch(groupSelfMemberProvider(widget.groupId));
     final formatMoney = ref.watch(moneyFormatterProvider);
     final l10n = context.l10n;
 
+    ref.listen(settlementSuggestionsProvider(widget.groupId), (previous, next) {
+      if (previous != null && previous.isNotEmpty && next.isEmpty) {
+        if (!AnimationConfig.useReducedMotion(context)) {
+          _confettiController.play();
+        }
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settlements)),
-      body: groupAsync.when(
-        data: (group) {
-          final currency = group?.currencyCode ?? 'USD';
-          return balancesAsync.when(
-            data: (balances) {
-              final suggestions =
-                  SettlementService.computeSettlementSuggestions(balances);
+      body: Stack(
+        children: [
+          groupAsync.when(
+            data: (group) {
+              final currency = group?.currencyCode ?? 'USD';
+              return balancesAsync.when(
+                data: (balances) {
+                  final suggestions = ref.watch(
+                    settlementSuggestionsProvider(widget.groupId),
+                  );
 
-              if (suggestions.isEmpty) {
-                return EmptyState(
-                  svgPath: 'assets/illustrations/all_settled.svg',
-                  icon: Icons.check_circle_outline,
-                  title: l10n.allSettledUp,
-                  message: '', // Message is optional or can be empty
-                );
-              }
+                  if (suggestions.isEmpty) {
+                    return EmptyState(
+                      svgPath: 'assets/illustrations/all_settled.svg',
+                      icon: Icons.check_circle_outline,
+                      title: l10n.allSettledUp,
+                      message: '', // Message is optional or can be empty
+                    );
+                  }
 
-              final actionRequired = suggestions
-                  .where((s) => s.fromMemberId == selfMemberId)
-                  .toList();
-              final incoming = suggestions
-                  .where((s) => s.toMemberId == selfMemberId)
-                  .toList();
-              final other = suggestions
-                  .where(
-                    (s) =>
-                        s.fromMemberId != selfMemberId &&
-                        s.toMemberId != selfMemberId,
-                  )
-                  .toList();
+                  final actionRequired = suggestions
+                      .where((s) => s.fromMemberId == selfMemberId)
+                      .toList();
+                  final incoming = suggestions
+                      .where((s) => s.toMemberId == selfMemberId)
+                      .toList();
+                  final other = suggestions
+                      .where(
+                        (s) =>
+                            s.fromMemberId != selfMemberId &&
+                            s.toMemberId != selfMemberId,
+                      )
+                      .toList();
 
-              return ListView(
-                padding: const EdgeInsets.all(AppTheme.space16),
-                children: [
-                  if (selfMemberId == null)
-                    _buildSelfMemberSelector(
-                      context,
-                      ref,
-                      groupId,
-                      membersAsync,
-                    ),
-                  if (actionRequired.isNotEmpty) ...[
-                    _buildSectionHeader(
-                      context,
-                      l10n.actionRequired,
-                      Colors.red,
-                    ),
-                    ...actionRequired.map(
-                      (s) => _SuggestionCard(
-                        suggestion: s,
-                        groupId: groupId,
-                        currency: currency,
-                        formatMoney: formatMoney,
-                        isOutgoing: true,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.space16),
-                  ],
-                  if (incoming.isNotEmpty) ...[
-                    _buildSectionHeader(context, l10n.incoming, Colors.green),
-                    ...incoming.map(
-                      (s) => _SuggestionCard(
-                        suggestion: s,
-                        groupId: groupId,
-                        currency: currency,
-                        formatMoney: formatMoney,
-                        isIncoming: true,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.space16),
-                  ],
-                  if (other.isNotEmpty)
-                    ExpansionTile(
-                      title: Text(l10n.otherSettlements),
-                      initiallyExpanded: selfMemberId == null,
-                      children: other
-                          .map(
-                            (s) => _SuggestionCard(
-                              suggestion: s,
-                              groupId: groupId,
-                              currency: currency,
-                              formatMoney: formatMoney,
-                            ),
-                          )
-                          .toList(),
-                    ),
-                ],
+                  return ListView(
+                    padding: const EdgeInsets.all(AppTheme.space16),
+                    children: [
+                      if (selfMemberId == null)
+                        _buildSelfMemberSelector(
+                          context,
+                          ref,
+                          widget.groupId,
+                          membersAsync,
+                        ),
+                      if (actionRequired.isNotEmpty) ...[
+                        _buildSectionHeader(
+                          context,
+                          l10n.actionRequired,
+                          Colors.red,
+                        ),
+                        ...actionRequired.map(
+                          (s) => _SuggestionCard(
+                            suggestion: s,
+                            groupId: widget.groupId,
+                            currency: currency,
+                            formatMoney: formatMoney,
+                            isOutgoing: true,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.space16),
+                      ],
+                      if (incoming.isNotEmpty) ...[
+                        _buildSectionHeader(
+                          context,
+                          l10n.incoming,
+                          Colors.green,
+                        ),
+                        ...incoming.map(
+                          (s) => _SuggestionCard(
+                            suggestion: s,
+                            groupId: widget.groupId,
+                            currency: currency,
+                            formatMoney: formatMoney,
+                            isIncoming: true,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.space16),
+                      ],
+                      if (other.isNotEmpty)
+                        ExpansionTile(
+                          title: Text(l10n.otherSettlements),
+                          initiallyExpanded: selfMemberId == null,
+                          children: other
+                              .map(
+                                (s) => _SuggestionCard(
+                                  suggestion: s,
+                                  groupId: widget.groupId,
+                                  currency: currency,
+                                  formatMoney: formatMoney,
+                                ),
+                              )
+                              .toList(),
+                        ),
+                    ],
+                  );
+                },
+                loading: () => const SkeletonList(),
+                error: (e, _) =>
+                    Center(child: Text('Error loading balances: $e')),
               );
             },
             loading: () => const SkeletonList(),
-            error: (e, _) => Center(child: Text('Error loading balances: $e')),
-          );
-        },
-        loading: () => const SkeletonList(),
-        error: (e, _) => Center(child: Text('Error loading group: $e')),
+            error: (e, _) => Center(child: Text('Error loading group: $e')),
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+              shouldLoop: false,
+              colors: const [
+                Colors.green,
+                Colors.blue,
+                Colors.pink,
+                Colors.orange,
+                Colors.purple,
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
