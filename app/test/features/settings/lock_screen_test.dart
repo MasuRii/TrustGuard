@@ -20,6 +20,9 @@ void main() {
     when(
       () => mockService.authenticateWithBiometrics(),
     ).thenAnswer((_) async => false);
+    when(
+      () => mockService.isRequireUnlockToExportEnabled(),
+    ).thenAnswer((_) async => false);
   });
 
   Widget createTestWidget(ProviderContainer container) {

@@ -16,6 +16,9 @@ void main() {
     when(() => mockService.setPin(any())).thenAnswer((_) async {});
     when(() => mockService.isPinSet()).thenAnswer((_) async => false);
     when(() => mockService.isBiometricEnabled()).thenAnswer((_) async => false);
+    when(
+      () => mockService.isRequireUnlockToExportEnabled(),
+    ).thenAnswer((_) async => false);
   });
 
   Widget createTestWidget(ProviderContainer container) {

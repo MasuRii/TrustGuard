@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/lock_providers.dart';
+import '../providers/notification_providers.dart';
 import '../../../app/providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -10,6 +11,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lockState = ref.watch(appLockStateProvider);
+    final notificationsEnabled = ref.watch(notificationPermissionProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -60,6 +62,42 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => _showRemovePinDialog(context, ref),
             ),
           ],
+          const Divider(),
+          _buildSectionHeader(context, 'Notifications'),
+          SwitchListTile(
+            secondary: const Icon(Icons.notifications_outlined),
+            title: const Text('Enable Reminders'),
+            subtitle: const Text('Get notified about unsettled balances'),
+            value: notificationsEnabled,
+            onChanged: (value) async {
+              if (value) {
+                final granted = await ref
+                    .read(notificationPermissionProvider.notifier)
+                    .requestPermission();
+                if (!granted && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Notification permission denied. Please enable in settings.',
+                      ),
+                    ),
+                  );
+                }
+              } else {
+                // In v1 we just track the permission,
+                // actual reminder scheduling is in 4.3.2/4.3.3
+                // We don't have a way to "revoke" permission programmatically on all platforms easily
+                // so we just show a message or track a separate 'remindersEnabled' flag in 4.3.2
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Notifications can only be disabled in system settings.',
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
           const Divider(),
           _buildSectionHeader(context, 'Data'),
           ListTile(

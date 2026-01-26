@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../ui/theme/app_theme.dart';
 import '../features/settings/providers/lock_providers.dart';
+import 'providers.dart';
 import 'router.dart';
 
 class TrustGuardApp extends ConsumerStatefulWidget {
@@ -17,8 +18,11 @@ class _TrustGuardAppState extends ConsumerState<TrustGuardApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Initialize lock state after first frame
-    Future.microtask(() => ref.read(appLockStateProvider.notifier).init());
+    // Initialize services after first frame
+    Future.microtask(() async {
+      await ref.read(notificationServiceProvider).init();
+      await ref.read(appLockStateProvider.notifier).init();
+    });
   }
 
   @override

@@ -9,18 +9,33 @@ import 'package:trustguard/src/features/settings/providers/lock_providers.dart';
 import 'package:trustguard/src/core/platform/app_lock_service.dart';
 import 'package:trustguard/src/core/database/database.dart';
 
+import 'package:trustguard/src/core/platform/notification_service.dart';
+
 class MockAppLockService extends Mock implements AppLockService {}
+
+class MockNotificationService extends Mock implements NotificationService {}
 
 void main() {
   late MockAppLockService mockService;
+  late MockNotificationService mockNotificationService;
 
   setUp(() {
     mockService = MockAppLockService();
+    mockNotificationService = MockNotificationService();
+
     when(() => mockService.isPinSet()).thenAnswer((_) async => true);
     when(() => mockService.verifyPin(any())).thenAnswer((_) async => false);
     when(() => mockService.isBiometricEnabled()).thenAnswer((_) async => false);
     when(
       () => mockService.isBiometricAvailable(),
+    ).thenAnswer((_) async => false);
+    when(
+      () => mockService.isRequireUnlockToExportEnabled(),
+    ).thenAnswer((_) async => false);
+
+    when(() => mockNotificationService.init()).thenAnswer((_) async {});
+    when(
+      () => mockNotificationService.isPermissionGranted(),
     ).thenAnswer((_) async => false);
   });
 
@@ -33,6 +48,9 @@ void main() {
       ProviderScope(
         overrides: [
           appLockServiceProvider.overrideWithValue(mockService),
+          notificationServiceProvider.overrideWithValue(
+            mockNotificationService,
+          ),
           databaseProvider.overrideWithValue(db),
         ],
         child: const TrustGuardApp(),
@@ -81,6 +99,9 @@ void main() {
       ProviderScope(
         overrides: [
           appLockServiceProvider.overrideWithValue(mockService),
+          notificationServiceProvider.overrideWithValue(
+            mockNotificationService,
+          ),
           databaseProvider.overrideWithValue(db),
         ],
         child: const TrustGuardApp(),

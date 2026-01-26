@@ -1,3 +1,4 @@
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
@@ -7,6 +8,7 @@ import '../core/database/repositories/member_repository.dart';
 import '../core/database/repositories/transaction_repository.dart';
 import '../core/database/repositories/tag_repository.dart';
 import '../core/platform/app_lock_service.dart';
+import '../core/platform/notification_service.dart';
 import '../core/models/tag_with_usage.dart';
 import '../core/models/tag.dart' as model;
 
@@ -17,11 +19,23 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   return db;
 });
 
+/// Provider for [FlutterSecureStorage].
+final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
+  return const FlutterSecureStorage();
+});
+
 /// Provider for [AppLockService].
 final appLockServiceProvider = Provider<AppLockService>((ref) {
-  const storage = FlutterSecureStorage();
+  final storage = ref.watch(secureStorageProvider);
   final auth = LocalAuthentication();
   return AppLockService(storage, auth);
+});
+
+/// Provider for [NotificationService].
+final notificationServiceProvider = Provider<NotificationService>((ref) {
+  final notifications = FlutterLocalNotificationsPlugin();
+  final storage = ref.watch(secureStorageProvider);
+  return NotificationService(notifications, storage);
 });
 
 /// Provider for [GroupRepository].
