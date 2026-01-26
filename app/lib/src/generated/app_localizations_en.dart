@@ -485,4 +485,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring => 'Recurring';
+
+  @override
+  String get importData => 'Import Data';
+
+  @override
+  String get selectCsvFile => 'Select CSV File';
+
+  @override
+  String detectedFormat(String format) {
+    return 'Detected Format: $format';
+  }
+
+  @override
+  String get mapMembers => 'Map Members';
+
+  @override
+  String importSuccess(num count) {
+    return 'Successfully imported $count transactions';
+  }
+
+  @override
+  String importErrors(num count) {
+    return '$count rows could not be imported';
+  }
 }

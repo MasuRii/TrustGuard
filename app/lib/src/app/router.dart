@@ -15,6 +15,7 @@ import '../features/transactions/presentation/add_transfer_screen.dart';
 import '../features/transactions/presentation/tags_screen.dart';
 import '../features/transactions/presentation/transaction_detail_screen.dart';
 import '../features/transactions/presentation/transaction_list_screen.dart';
+import '../features/import/presentation/import_screen.dart';
 import '../features/reminders/presentation/reminder_settings_screen.dart';
 import '../features/settings/presentation/lock_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
@@ -134,6 +135,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return ExportScreen(groupId: id);
+                },
+              ),
+              GoRoute(
+                path: 'import',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return ImportScreen(groupId: id);
                 },
               ),
               GoRoute(

@@ -252,5 +252,32 @@
   "yearly": "Yearly",
   "repeatUntil": "Until",
   "repeatForever": "Forever",
-  "recurring": "Recurring"
+  "recurring": "Recurring",
+  "importData": "Import Data",
+  "selectCsvFile": "Select CSV File",
+  "detectedFormat": "Detected Format: {format}",
+  "@detectedFormat": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "mapMembers": "Map Members",
+  "importSuccess": "Successfully imported {count} transactions",
+  "@importSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "importErrors": "{count} rows could not be imported",
+  "@importErrors": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  }
 }

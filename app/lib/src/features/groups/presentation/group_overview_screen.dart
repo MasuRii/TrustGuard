@@ -258,6 +258,13 @@ class GroupOverviewScreen extends ConsumerWidget {
           onTap: () => context.push('/group/${group.id}/tags'),
           color: Colors.pink,
         ),
+        _buildActionCard(
+          context,
+          icon: Icons.file_download_outlined,
+          label: l10n.importData,
+          onTap: () => context.push('/group/${group.id}/import'),
+          color: Colors.brown,
+        ),
       ],
     );
   }

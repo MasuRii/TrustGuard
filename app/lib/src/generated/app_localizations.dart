@@ -927,6 +927,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recurring'**
   String get recurring;
+
+  /// No description provided for @importData.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Data'**
+  String get importData;
+
+  /// No description provided for @selectCsvFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select CSV File'**
+  String get selectCsvFile;
+
+  /// No description provided for @detectedFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected Format: {format}'**
+  String detectedFormat(String format);
+
+  /// No description provided for @mapMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Members'**
+  String get mapMembers;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully imported {count} transactions'**
+  String importSuccess(num count);
+
+  /// No description provided for @importErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} rows could not be imported'**
+  String importErrors(num count);
 }
 
 class _AppLocalizationsDelegate
