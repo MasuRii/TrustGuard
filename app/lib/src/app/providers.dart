@@ -18,6 +18,8 @@ import '../core/utils/money.dart';
 import '../features/export_backup/services/export_service.dart';
 import '../features/export_backup/services/backup_service.dart';
 import '../features/settings/services/settings_service.dart';
+import '../features/onboarding/services/onboarding_service.dart';
+import '../features/onboarding/models/onboarding_state.dart';
 
 /// Provider for the [AppDatabase] singleton.
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -169,3 +171,29 @@ final backupServiceProvider = Provider<BackupService>((ref) {
     reminderRepository: ref.watch(reminderRepositoryProvider),
   );
 });
+
+/// Provider for [OnboardingService].
+final onboardingServiceProvider = Provider<OnboardingService>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return OnboardingService(prefs);
+});
+
+/// Provider for [OnboardingState].
+class OnboardingNotifier extends Notifier<OnboardingState> {
+  @override
+  OnboardingState build() {
+    final service = ref.watch(onboardingServiceProvider);
+    return service.getOnboardingState();
+  }
+
+  Future<void> completeOnboarding() async {
+    final service = ref.read(onboardingServiceProvider);
+    await service.markOnboardingComplete();
+    state = service.getOnboardingState();
+  }
+}
+
+final onboardingStateProvider =
+    NotifierProvider<OnboardingNotifier, OnboardingState>(
+      OnboardingNotifier.new,
+    );
