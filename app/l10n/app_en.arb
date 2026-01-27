@@ -286,6 +286,8 @@
   "quickAdd": "Quick Add",
   "quickAddHint": "Equal split with all members",
   "save": "Save",
+  "groupArchived": "Group archived",
+  "memberRemoved": "Member removed",
   "selectGroup": "Select Group",
   "noGroupsImportMessage": "You need to create a group before you can import data."
 }

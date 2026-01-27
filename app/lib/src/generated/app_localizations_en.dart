@@ -529,6 +529,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get save => 'Save';
 
   @override
+  String get groupArchived => 'Group archived';
+
+  @override
+  String get memberRemoved => 'Member removed';
+
+  @override
   String get selectGroup => 'Select Group';
 
   @override

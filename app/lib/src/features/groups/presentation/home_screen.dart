@@ -13,6 +13,9 @@ import '../../dashboard/presentation/widgets/dashboard_card.dart';
 import '../../dashboard/presentation/widgets/recent_activity_list.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../ui/components/speed_dial_fab.dart';
+import '../../../core/services/undoable_action_service.dart';
+import '../../../ui/components/undo_snackbar.dart';
+import '../../../core/models/group.dart';
 import 'groups_providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -54,6 +57,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     ref.invalidate(groupsWithMemberCountProvider);
     await ref.read(groupsWithMemberCountProvider.future);
     // Animation will be restarted via ref.listen or whenData check
+  }
+
+  void _scheduleGroupArchive(Group group) {
+    final repository = ref.read(groupRepositoryProvider);
+    final undoService = ref.read(undoableActionProvider);
+    final l10n = context.l10n;
+
+    // Optimistically hide from list
+    ref
+        .read(optimisticallyHiddenGroupIdsProvider.notifier)
+        .update((state) => {...state, group.id});
+
+    final actionId = undoService.schedule(
+      UndoableAction(
+        id: 'archive_group_${group.id}',
+        description: l10n.groupArchived,
+        executeAction: () async {
+          await repository.archiveGroup(group.id);
+          // Remove from optimistic hide once executed
+          if (mounted) {
+            ref
+                .read(optimisticallyHiddenGroupIdsProvider.notifier)
+                .update((state) => state.where((id) => id != group.id).toSet());
+          }
+        },
+        undoAction: () async {
+          // Just remove from optimistic hide to bring it back
+          if (mounted) {
+            ref
+                .read(optimisticallyHiddenGroupIdsProvider.notifier)
+                .update((state) => state.where((id) => id != group.id).toSet());
+          }
+        },
+      ),
+    );
+
+    showUndoSnackBar(
+      context: context,
+      message: l10n.groupArchived,
+      actionId: actionId,
+      undoService: undoService,
+    );
   }
 
   Future<void> _showGroupSelectionForImport() async {
@@ -263,9 +308,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                           );
                                           break;
                                         case 'archive':
-                                          await ref
-                                              .read(groupRepositoryProvider)
-                                              .archiveGroup(group.id);
+                                          _scheduleGroupArchive(group);
                                           break;
                                         case 'unarchive':
                                           await ref
@@ -274,6 +317,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                           break;
                                       }
                                     },
+
                                     itemBuilder: (context) => [
                                       PopupMenuItem(
                                         value: 'edit',

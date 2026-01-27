@@ -13,10 +13,21 @@ final groupsWithMemberCountProvider =
     StreamProvider.autoDispose<List<GroupWithMemberCount>>((ref) {
       final repository = ref.watch(groupRepositoryProvider);
       final includeArchived = ref.watch(showArchivedGroupsProvider);
-      return repository.watchGroupsWithMemberCount(
-        includeArchived: includeArchived,
-      );
+      final hiddenIds = ref.watch(optimisticallyHiddenGroupIdsProvider);
+
+      return repository
+          .watchGroupsWithMemberCount(includeArchived: includeArchived)
+          .map((groups) {
+            if (hiddenIds.isEmpty) return groups;
+            return groups
+                .where((g) => !hiddenIds.contains(g.group.id))
+                .toList();
+          });
     });
+
+/// Provider for IDs of groups that are optimistically hidden (e.g. during archive undo).
+final optimisticallyHiddenGroupIdsProvider =
+    StateProvider.autoDispose<Set<String>>((ref) => {});
 
 /// Provider for a single group by its ID.
 final groupProvider = FutureProvider.autoDispose.family<Group?, String>((

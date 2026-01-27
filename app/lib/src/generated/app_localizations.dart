@@ -1000,6 +1000,18 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get save;
 
+  /// No description provided for @groupArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Group archived'**
+  String get groupArchived;
+
+  /// No description provided for @memberRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Member removed'**
+  String get memberRemoved;
+
   /// No description provided for @selectGroup.
   ///
   /// In en, this message translates to:
