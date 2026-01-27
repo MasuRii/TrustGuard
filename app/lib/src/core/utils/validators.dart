@@ -37,6 +37,22 @@ class Validators {
     return ValidationResult.success();
   }
 
+  static ValidationResult validatePercentageSum(
+    Map<String, double> percentages,
+  ) {
+    if (percentages.isEmpty) {
+      return ValidationResult.failure('At least one participant is required');
+    }
+    final sum = percentages.values.fold<double>(0, (s, p) => s + p);
+    // Use a small epsilon for floating point comparison
+    if ((sum - 100.0).abs() > 0.001) {
+      return ValidationResult.failure(
+        'Total percentage must be 100% (currently ${sum.toStringAsFixed(0)}%)',
+      );
+    }
+    return ValidationResult.success();
+  }
+
   static ValidationResult validateTransfer({
     required String fromMemberId,
     required String toMemberId,

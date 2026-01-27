@@ -31,6 +31,8 @@ import 'widgets/split_preview_bar.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transactions_providers.dart';
 
+enum CustomSplitMode { amount, percentage }
+
 class AddExpenseScreen extends ConsumerStatefulWidget {
   final String groupId;
   final String? transactionId;
@@ -64,6 +66,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   final Set<String> _selectedMemberIds = {};
   final Set<String> _selectedTagIds = {};
   final Map<String, TextEditingController> _customAmountControllers = {};
+  final Map<String, double> _customPercentages = {};
+  CustomSplitMode _customSplitMode = CustomSplitMode.amount;
   SplitType _splitType = SplitType.equal;
   bool _isLoading = false;
   bool _isInitialized = false;
@@ -339,6 +343,18 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         );
       } else {
         // Custom split
+        if (_customSplitMode == CustomSplitMode.percentage) {
+          final percentageValidation = Validators.validatePercentageSum(
+            _customPercentages,
+          );
+          if (!percentageValidation.isValid) {
+            _saveButtonKey.currentState?.shake();
+            _appBarSaveKey.currentState?.shake();
+            _splitPreviewKey.currentState?.shake();
+            throw Exception(percentageValidation.errorMessage);
+          }
+        }
+
         splitAmounts = _selectedMemberIds.map((id) {
           final controller = _customAmountControllers[id];
           if (controller == null) return 0;
@@ -475,6 +491,31 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     }
   }
 
+  void _updatePercentagesFromAmounts() {
+    final total = double.tryParse(_amountController.text) ?? 0.0;
+    if (total <= 0) {
+      for (var id in _selectedMemberIds) {
+        _customPercentages[id] = 0.0;
+      }
+      return;
+    }
+
+    for (var id in _selectedMemberIds) {
+      final amt =
+          double.tryParse(_customAmountControllers[id]?.text ?? '0') ?? 0.0;
+      _customPercentages[id] = (amt / total * 100).roundToDouble();
+    }
+  }
+
+  void _updateAmountsFromPercentages() {
+    final total = double.tryParse(_amountController.text) ?? 0.0;
+    for (var id in _selectedMemberIds) {
+      final percentage = _customPercentages[id] ?? 0.0;
+      final amt = total * (percentage / 100);
+      _customAmountControllers[id]?.text = amt.toStringAsFixed(2);
+    }
+  }
+
   String _getInitials(String name) {
     if (name.isEmpty) return '';
     final parts = name.trim().split(' ');
@@ -528,6 +569,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               );
             }
           }
+
+          if (_splitType == SplitType.custom) {
+            _updatePercentagesFromAmounts();
+          }
+
           _selectedTagIds.clear();
           _selectedTagIds.addAll(tx.tags.map((t) => t.id));
 
@@ -795,6 +841,14 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                                     () =>
                                                         TextEditingController(),
                                                   );
+                                              _customPercentages.putIfAbsent(
+                                                id,
+                                                () => 0.0,
+                                              );
+                                            }
+                                            if (_customSplitMode ==
+                                                CustomSplitMode.percentage) {
+                                              _updatePercentagesFromAmounts();
                                             }
                                           }
                                         });
@@ -817,11 +871,23 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                           id,
                                           () => TextEditingController(),
                                         );
+                                        _customPercentages.putIfAbsent(
+                                          id,
+                                          () => 0.0,
+                                        );
                                       }
                                       _customAmountControllers.removeWhere(
                                         (id, _) =>
                                             !_selectedMemberIds.contains(id),
                                       );
+                                      _customPercentages.removeWhere(
+                                        (id, _) =>
+                                            !_selectedMemberIds.contains(id),
+                                      );
+                                      if (_customSplitMode ==
+                                          CustomSplitMode.percentage) {
+                                        _updateAmountsFromPercentages();
+                                      }
                                     }
                                   });
                                 },
@@ -829,6 +895,40 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                               ),
                               if (_splitType == SplitType.custom &&
                                   _selectedMemberIds.isNotEmpty) ...[
+                                const SizedBox(height: AppTheme.space16),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppTheme.space16,
+                                  ),
+                                  child: SegmentedButton<CustomSplitMode>(
+                                    segments: [
+                                      ButtonSegment(
+                                        value: CustomSplitMode.amount,
+                                        label: Text(context.l10n.amount),
+                                        icon: const Icon(Icons.attach_money),
+                                      ),
+                                      ButtonSegment(
+                                        value: CustomSplitMode.percentage,
+                                        label: Text(context.l10n.percentage),
+                                        icon: const Icon(Icons.percent),
+                                      ),
+                                    ],
+                                    selected: {_customSplitMode},
+                                    onSelectionChanged:
+                                        (Set<CustomSplitMode> newSelection) {
+                                          setState(() {
+                                            _customSplitMode =
+                                                newSelection.first;
+                                            if (_customSplitMode ==
+                                                CustomSplitMode.percentage) {
+                                              _updatePercentagesFromAmounts();
+                                            } else {
+                                              _updateAmountsFromPercentages();
+                                            }
+                                          });
+                                        },
+                                  ),
+                                ),
                                 const SizedBox(height: AppTheme.space16),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -889,39 +989,59 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                                     ).textTheme.bodyMedium,
                                                   ),
                                                 ),
-                                                SizedBox(
-                                                  width: 120,
-                                                  child: TextFormField(
-                                                    controller:
-                                                        _customAmountControllers[id],
-                                                    decoration: InputDecoration(
-                                                      labelText: 'Amount',
-                                                      prefixText: '$currency ',
-                                                      isDense: true,
-                                                      border:
-                                                          const OutlineInputBorder(),
+                                                if (_customSplitMode ==
+                                                    CustomSplitMode.amount)
+                                                  SizedBox(
+                                                    width: 120,
+                                                    child: TextFormField(
+                                                      controller:
+                                                          _customAmountControllers[id],
+                                                      decoration: InputDecoration(
+                                                        labelText: 'Amount',
+                                                        prefixText:
+                                                            '$currency ',
+                                                        isDense: true,
+                                                        border:
+                                                            const OutlineInputBorder(),
+                                                      ),
+                                                      keyboardType:
+                                                          const TextInputType.numberWithOptions(
+                                                            decimal: true,
+                                                          ),
+                                                      onChanged: (_) {
+                                                        setState(() {
+                                                          _updatePercentagesFromAmounts();
+                                                        });
+                                                      },
+                                                      validator: (value) {
+                                                        if (value == null ||
+                                                            value.isEmpty) {
+                                                          return 'Required';
+                                                        }
+                                                        if (double.tryParse(
+                                                              value,
+                                                            ) ==
+                                                            null) {
+                                                          return 'Invalid';
+                                                        }
+                                                        return null;
+                                                      },
                                                     ),
-                                                    keyboardType:
-                                                        const TextInputType.numberWithOptions(
-                                                          decimal: true,
+                                                  )
+                                                else
+                                                  Text(
+                                                    '${(_customPercentages[id] ?? 0).toStringAsFixed(0)}%',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleMedium
+                                                        ?.copyWith(
+                                                          color: Theme.of(
+                                                            context,
+                                                          ).colorScheme.primary,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                         ),
-                                                    onChanged: (_) =>
-                                                        setState(() {}),
-                                                    validator: (value) {
-                                                      if (value == null ||
-                                                          value.isEmpty) {
-                                                        return 'Required';
-                                                      }
-                                                      if (double.tryParse(
-                                                            value,
-                                                          ) ==
-                                                          null) {
-                                                        return 'Invalid';
-                                                      }
-                                                      return null;
-                                                    },
                                                   ),
-                                                ),
                                               ],
                                             ),
                                             if (totalAmountDouble > 0)
@@ -930,16 +1050,45 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                                   left: 44.0,
                                                 ),
                                                 child: HapticSlider(
-                                                  value: currentAmount.clamp(
-                                                    0.0,
-                                                    totalAmountDouble,
-                                                  ),
-                                                  max: totalAmountDouble,
+                                                  value:
+                                                      _customSplitMode ==
+                                                          CustomSplitMode.amount
+                                                      ? currentAmount.clamp(
+                                                          0.0,
+                                                          totalAmountDouble,
+                                                        )
+                                                      : (_customPercentages[id] ??
+                                                            0.0),
+                                                  max:
+                                                      _customSplitMode ==
+                                                          CustomSplitMode.amount
+                                                      ? totalAmountDouble
+                                                      : 100.0,
+                                                  divisions:
+                                                      _customSplitMode ==
+                                                          CustomSplitMode.amount
+                                                      ? null
+                                                      : 20,
+                                                  label:
+                                                      _customSplitMode ==
+                                                          CustomSplitMode.amount
+                                                      ? null
+                                                      : '${(_customPercentages[id] ?? 0).toStringAsFixed(0)}%',
                                                   onChanged: (value) {
-                                                    _customAmountControllers[id]
-                                                        ?.text = value
-                                                        .toStringAsFixed(2);
-                                                    setState(() {});
+                                                    setState(() {
+                                                      if (_customSplitMode ==
+                                                          CustomSplitMode
+                                                              .amount) {
+                                                        _customAmountControllers[id]
+                                                            ?.text = value
+                                                            .toStringAsFixed(2);
+                                                        _updatePercentagesFromAmounts();
+                                                      } else {
+                                                        _customPercentages[id] =
+                                                            value;
+                                                        _updateAmountsFromPercentages();
+                                                      }
+                                                    });
                                                   },
                                                 ),
                                               ),
@@ -950,6 +1099,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                   ),
                                 ),
                               ],
+
                               if (_selectedMemberIds.isNotEmpty) ...[
                                 const SizedBox(height: AppTheme.space16),
                                 ShakeWidget(

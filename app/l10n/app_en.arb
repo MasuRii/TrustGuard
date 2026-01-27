@@ -291,5 +291,7 @@
   "selectGroup": "Select Group",
   "noGroupsImportMessage": "You need to create a group before you can import data.",
   "swipeActionHint": "Swipe left to edit or delete transactions",
-  "receiptScanHint": "Tap to scan a receipt and auto-fill the amount"
+  "receiptScanHint": "Tap to scan a receipt and auto-fill the amount",
+  "amount": "Amount",
+  "percentage": "Percentage"
 }

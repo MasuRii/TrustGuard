@@ -547,4 +547,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get receiptScanHint =>
       'Tap to scan a receipt and auto-fill the amount';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get percentage => 'Percentage';
 }

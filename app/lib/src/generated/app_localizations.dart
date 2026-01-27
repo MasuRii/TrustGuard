@@ -1035,6 +1035,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to scan a receipt and auto-fill the amount'**
   String get receiptScanHint;
+
+  /// No description provided for @amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amount;
+
+  /// No description provided for @percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentage'**
+  String get percentage;
 }
 
 class _AppLocalizationsDelegate
