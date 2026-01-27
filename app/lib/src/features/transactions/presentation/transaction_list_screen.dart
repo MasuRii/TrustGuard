@@ -33,6 +33,7 @@ import '../../../ui/components/speed_dial_fab.dart';
 import 'quick_add_expense_sheet.dart';
 import '../../../core/services/coachmark_service.dart';
 import '../../../ui/components/coachmark_overlay.dart';
+import '../../../ui/components/animated_filter_badge.dart';
 
 class TransactionListScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -150,8 +151,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
         title: Text(context.l10n.transactionsTitle),
         actions: [
           IconButton(
-            icon: Badge(
-              isLabelVisible: !filter.isEmpty,
+            icon: AnimatedFilterBadge(
+              isActive: !filter.isEmpty,
               child: const Icon(Icons.filter_list),
             ),
             onPressed: () {
