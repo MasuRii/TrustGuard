@@ -975,6 +975,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use a specialized keypad for amount entry'**
   String get useCustomKeypadDesc;
+
+  /// No description provided for @quickAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Add'**
+  String get quickAdd;
+
+  /// No description provided for @quickAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Equal split with all members'**
+  String get quickAddHint;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
 }
 
 class _AppLocalizationsDelegate

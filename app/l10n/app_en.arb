@@ -281,5 +281,8 @@
     }
   },
   "useCustomKeypad": "Use calculator-style input",
-  "useCustomKeypadDesc": "Use a specialized keypad for amount entry"
+  "useCustomKeypadDesc": "Use a specialized keypad for amount entry",
+  "quickAdd": "Quick Add",
+  "quickAddHint": "Equal split with all members",
+  "save": "Save"
 }

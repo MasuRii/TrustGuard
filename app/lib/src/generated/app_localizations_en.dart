@@ -515,4 +515,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get useCustomKeypadDesc => 'Use a specialized keypad for amount entry';
+
+  @override
+  String get quickAdd => 'Quick Add';
+
+  @override
+  String get quickAddHint => 'Equal split with all members';
+
+  @override
+  String get save => 'Save';
 }
