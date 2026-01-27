@@ -9,6 +9,7 @@ abstract class Tag with _$Tag {
     required String id,
     required String groupId,
     required String name,
+    @Default(0) int orderIndex,
   }) = _Tag;
 
   factory Tag.fromJson(Map<String, dynamic> json) => _$TagFromJson(json);

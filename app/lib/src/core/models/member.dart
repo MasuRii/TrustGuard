@@ -11,6 +11,7 @@ abstract class Member with _$Member {
     required String displayName,
     required DateTime createdAt,
     DateTime? removedAt,
+    @Default(0) int orderIndex,
   }) = _Member;
 
   factory Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);

@@ -10,6 +10,7 @@ class MemberMapper {
       displayName: data.displayName,
       createdAt: data.createdAt,
       removedAt: data.removedAt,
+      orderIndex: data.orderIndex,
     );
   }
 
@@ -20,6 +21,7 @@ class MemberMapper {
       displayName: Value(domain.displayName),
       createdAt: Value(domain.createdAt),
       removedAt: Value(domain.removedAt),
+      orderIndex: Value(domain.orderIndex),
     );
   }
 }

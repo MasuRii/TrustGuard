@@ -12,6 +12,7 @@ void main() {
       displayName: 'Member 1',
       createdAt: now,
       removedAt: null,
+      orderIndex: 0,
     );
 
     final memberModel = model.Member(
@@ -20,6 +21,7 @@ void main() {
       displayName: 'Member 1',
       createdAt: now,
       removedAt: null,
+      orderIndex: 0,
     );
 
     test('toModel should convert MemberData to Member model', () {

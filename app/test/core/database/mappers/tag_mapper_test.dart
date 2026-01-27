@@ -5,9 +5,14 @@ import 'package:trustguard/src/core/models/tag.dart' as model;
 
 void main() {
   group('TagMapper', () {
-    const tagData = Tag(id: 't1', groupId: 'g1', name: 'Food');
+    const tagData = Tag(id: 't1', groupId: 'g1', name: 'Food', orderIndex: 0);
 
-    const tagModel = model.Tag(id: 't1', groupId: 'g1', name: 'Food');
+    const tagModel = model.Tag(
+      id: 't1',
+      groupId: 'g1',
+      name: 'Food',
+      orderIndex: 0,
+    );
 
     test('toModel should convert TagData to Tag model', () {
       final result = TagMapper.toModel(tagData);

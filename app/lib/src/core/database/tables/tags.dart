@@ -7,6 +7,7 @@ class Tags extends Table {
   TextColumn get name => text()
       .withLength(min: 1, max: 50)
       .customConstraint('NOT NULL COLLATE NOCASE')();
+  IntColumn get orderIndex => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};
