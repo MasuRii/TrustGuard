@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/undoable_action_service.dart';
 import '../../core/utils/haptics.dart';
 import '../../generated/app_localizations.dart';
@@ -31,7 +30,7 @@ void showUndoSnackBar({
   required BuildContext context,
   required String message,
   required String actionId,
-  required WidgetRef ref,
+  required UndoableActionService undoService,
   UndoSnackBarConfig? config,
 }) {
   final l10n = AppLocalizations.of(context)!;
@@ -47,9 +46,7 @@ void showUndoSnackBar({
       action: SnackBarAction(
         label: config?.undoLabel ?? l10n.undo,
         onPressed: () async {
-          final success = await ref
-              .read(undoableActionProvider)
-              .cancel(actionId);
+          final success = await undoService.cancel(actionId);
           if (success) {
             config?.onUndo?.call();
             HapticsService.success();

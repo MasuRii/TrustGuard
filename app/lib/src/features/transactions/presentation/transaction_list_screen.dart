@@ -24,6 +24,8 @@ import '../models/paginated_transactions_state.dart';
 import '../utils/transaction_grouper.dart';
 import 'widgets/date_group_header.dart';
 import '../../../ui/animations/staggered_list_animation.dart';
+import '../../../core/services/undoable_action_service.dart';
+import '../../../ui/components/undo_snackbar.dart';
 
 class TransactionListScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -596,7 +598,7 @@ class _TransactionListItem extends ConsumerWidget {
               SlidableAction(
                 onPressed: (context) {
                   HapticsService.lightTap();
-                  _confirmDelete(context, ref);
+                  _scheduleTransactionDelete(context, ref);
                 },
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
@@ -703,47 +705,36 @@ class _TransactionListItem extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
-    HapticsService.warning();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.deleteTransaction),
-        content: Text(context.l10n.deleteTransactionConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(context.l10n.swipeToDelete),
-          ),
-        ],
+  void _scheduleTransactionDelete(BuildContext context, WidgetRef ref) {
+    final repository = ref.read(transactionRepositoryProvider);
+    final undoService = ref.read(undoableActionProvider);
+    final l10n = context.l10n;
+    final paginatedNotifier = ref.read(
+      paginatedTransactionsProvider(transaction.groupId).notifier,
+    );
+
+    // Optimistically remove from list
+    paginatedNotifier.removeItem(transaction.id);
+
+    final actionId = undoService.schedule(
+      UndoableAction(
+        id: 'delete_tx_${transaction.id}',
+        description: l10n.transactionDeleted,
+        executeAction: () async {
+          await repository.softDeleteTransaction(transaction.id);
+        },
+        undoAction: () async {
+          // Bring it back by refreshing the provider
+          await paginatedNotifier.refresh();
+        },
       ),
     );
 
-    if (confirmed == true) {
-      await ref
-          .read(transactionRepositoryProvider)
-          .softDeleteTransaction(transaction.id);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.transactionDeleted),
-            action: SnackBarAction(
-              label: context.l10n.undo,
-              onPressed: () {
-                ref
-                    .read(transactionRepositoryProvider)
-                    .undoSoftDeleteTransaction(transaction.id);
-              },
-            ),
-          ),
-        );
-      }
-    }
+    showUndoSnackBar(
+      context: context,
+      message: l10n.transactionDeleted,
+      actionId: actionId,
+      undoService: undoService,
+    );
   }
 }

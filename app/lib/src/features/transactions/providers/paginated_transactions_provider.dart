@@ -78,4 +78,19 @@ class PaginatedTransactionsNotifier
     final filter = ref.read(transactionFilterProvider(arg));
     state = await AsyncValue.guard(() => _fetchPage(0, filter));
   }
+
+  /// Optimistically removes a transaction from the current state.
+  void removeItem(String transactionId) {
+    if (!state.hasValue) return;
+
+    final currentState = state.value!;
+    state = AsyncData(
+      currentState.copyWith(
+        transactions: currentState.transactions
+            .where((t) => t.id != transactionId)
+            .toList(),
+        totalCount: currentState.totalCount - 1,
+      ),
+    );
+  }
 }

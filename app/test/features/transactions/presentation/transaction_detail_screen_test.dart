@@ -276,23 +276,25 @@ void main() {
 
     // Confirm delete in dialog
     await tester.tap(find.text('Delete'));
-    await tester.pumpAndSettle();
-
-    // Verify transaction is soft-deleted
-    final tx = await (db.select(
-      db.transactions,
-    )..where((t) => t.id.equals(txId))).getSingle();
-    expect(tx.deletedAt, isNotNull);
+    // Use pump instead of pumpAndSettle to avoid flushing the 5s timer
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     // Verify snackbar is shown
     expect(find.text('Transaction deleted'), findsOneWidget);
     expect(find.text('Undo'), findsOneWidget);
 
+    // Verify transaction is NOT yet soft-deleted (due to delay)
+    final txPending = await (db.select(
+      db.transactions,
+    )..where((t) => t.id.equals(txId))).getSingle();
+    expect(txPending.deletedAt, isNull);
+
     // Tap Undo
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
 
-    // Verify transaction is restored
+    // Verify transaction is still not deleted
     final txRestored = await (db.select(
       db.transactions,
     )..where((t) => t.id.equals(txId))).getSingle();

@@ -100,12 +100,12 @@ void main() {
     await tester.tap(find.byIcon(Icons.delete));
     await tester.pumpAndSettle();
 
-    // Should see confirmation dialog
-    expect(find.text('Delete Transaction'), findsOneWidget);
-    expect(
-      find.text('Are you sure you want to delete this transaction?'),
-      findsOneWidget,
-    );
+    // Should be removed from list (optimistically)
+    expect(find.text('Test Tx'), findsNothing);
+
+    // Should see undo snackbar
+    expect(find.text('Transaction deleted'), findsOneWidget);
+    expect(find.text('Undo'), findsOneWidget);
 
     await db.close();
     await tester.pump(Duration.zero);

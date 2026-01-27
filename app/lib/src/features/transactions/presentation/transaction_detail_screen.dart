@@ -12,6 +12,11 @@ import '../../../ui/components/skeletons/skeleton_detail.dart';
 import '../../groups/presentation/groups_providers.dart';
 import '../services/attachment_service.dart';
 import 'transactions_providers.dart';
+import '../providers/paginated_transactions_provider.dart';
+import '../../../core/services/undoable_action_service.dart';
+import '../../../ui/components/undo_snackbar.dart';
+import '../../../core/utils/haptics.dart';
+import '../../../app/app.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
   final String groupId;
@@ -447,45 +452,64 @@ class TransactionDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    HapticsService.warning();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Transaction?'),
-        content: const Text(
-          'This will remove the transaction from balances and history.',
-        ),
+        title: Text(context.l10n.deleteTransaction),
+        content: Text(context.l10n.deleteTransactionConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.swipeToDelete),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
+      if (!context.mounted) return;
+
       final repository = ref.read(transactionRepositoryProvider);
-      await repository.softDeleteTransaction(transactionId);
-      if (context.mounted) {
-        context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Transaction deleted'),
-            action: SnackBarAction(
-              label: 'Undo',
-              onPressed: () =>
-                  repository.undoSoftDeleteTransaction(transactionId),
-            ),
-          ),
-        );
-      }
+      final undoService = ref.read(undoableActionProvider);
+      final l10n = context.l10n;
+      final paginatedNotifier = ref.read(
+        paginatedTransactionsProvider(groupId).notifier,
+      );
+
+      // Optimistically remove from list
+      paginatedNotifier.removeItem(transactionId);
+
+      final actionId = undoService.schedule(
+        UndoableAction(
+          id: 'delete_tx_$transactionId',
+          description: l10n.transactionDeleted,
+          executeAction: () async {
+            await repository.softDeleteTransaction(transactionId);
+          },
+          undoAction: () async {
+            await paginatedNotifier.refresh();
+          },
+        ),
+      );
+
+      showUndoSnackBar(
+        context: context,
+        message: l10n.transactionDeleted,
+        actionId: actionId,
+        undoService: undoService,
+      );
+
+      // Pop after showing snackbar - it will persist on the next screen
+      // because ScaffoldMessenger is global to the Navigator.
+      context.pop();
     }
   }
 }
