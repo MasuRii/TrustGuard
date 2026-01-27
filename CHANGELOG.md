@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-01-28
+
+### Added
+- **Spending Analytics**: Integrated `fl_chart` for visual spending insights.
+  - Interactive Pie Charts for category and member breakdowns.
+  - Monthly Trend Charts with period filtering and gradient fills.
+- **Receipt OCR**: Automated expense entry using `google_mlkit_text_recognition`.
+  - On-device extraction of amount, date, and merchant.
+  - Confidence scoring and manual verification flow.
+- **Recurring Transactions**: Support for automated periodic expenses and transfers.
+  - Flexible frequencies: Daily, Weekly, Bi-weekly, Monthly, Yearly.
+  - Background processing on app startup.
+- **Data Import**: Intelligent CSV import for Splitwise and Tricount exports.
+  - Automatic format detection and row preview.
+  - Interactive member mapping and automated member creation.
+- **Enhanced Motion Design**:
+  - **Container Transforms**: Smooth shared-element transitions for navigation.
+  - **Rolling Numbers**: Animated counters for financial values on the dashboard.
+  - **Shake Feedback**: Visual "shake" effect for validation errors and incorrect PIN entry.
+  - **Confetti Celebrations**: Festive effects when a group is fully settled.
+- **Improved Input Experience**:
+  - **Custom Numeric Keypad**: Specialized calculator-style input for faster amount entry.
+  - **Glassmorphism**: Modern frosted-glass effect for sticky date headers.
+- **Robustness & Testing**:
+  - Incremented database schema to version 4 with non-destructive migrations.
+  - Added 110+ new tests covering all v1.3 features.
+  - New E2E integration test covering the complete v1.3 feature set.
+
+### Changed
+- Refactored `TransactionListScreen` to use `CustomScrollView` for better performance and sticky headers.
+- Updated `DashboardCard` to use `RollingNumberText` for all financial summaries.
+- Integrated `ShakeWidget` into all primary form validation flows.
+
+### Fixed
+- Improved CSV parsing robustness across different operating systems (EOL handling).
+- Resolved overlapping text issues in `MemberAvatarSelector` on small devices.
+
 ## [1.2.0] - 2026-01-27
 
 ### Added

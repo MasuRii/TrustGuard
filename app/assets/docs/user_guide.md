@@ -94,10 +94,41 @@ Organize your spending by adding tags (e.g., "Food", "Transport").
 - View and manage tags in the **Tags** screen.
 - Use the **Filter** icon on the transaction list to find expenses by note, member, tag, or date range.
 
-### Export and Backup
-Your data is yours. Go to **Settings > Data Management** to:
-- **Export to CSV:** Get a spreadsheet-friendly file of all transactions.
-- **Full Backup:** Create an encrypted JSON file containing all your data, which can be restored on another device.
+## 6. Advanced Analytics
+Gain insights into your spending habits with visual charts.
+
+### Analyzing Your Spending
+1. From the Group Overview, tap the **Analytics** icon.
+2. **Spending by Category:** A pie chart shows which tags are consuming most of your budget. Tap a segment to see the exact amount and percentage.
+3. **Who Spent Most:** See the contribution of each member to the total group spending.
+4. **Monthly Trend:** A line graph visualizes your spending over time.
+5. **Period Filter:** Use the dropdown at the top to switch between 3 months, 6 months, or 12 months of data.
+
+## 7. Automation and Imports
+Save time by automating entry and importing existing data.
+
+### Scanning Receipts (OCR)
+TrustGuard can use your camera to automatically extract data from paper receipts.
+1. In the **Add Expense** screen, tap the **Scanner** icon in the top right.
+2. Take a photo or choose a receipt from your gallery.
+3. TrustGuard will extract the **Merchant**, **Date**, and **Total Amount**.
+4. Review the results (check the confidence indicator) and tap **Apply** to fill the form.
+*Tip: Ensure the receipt is flat and well-lit for the best results.*
+
+### Recurring Transactions
+Set up templates for expenses that happen regularly (like rent or subscriptions).
+1. In the **Add Expense** or **Add Transfer** screen, toggle **Repeat**.
+2. Select the **Frequency** (Daily, Weekly, Monthly, etc.).
+3. Choose an optional **Until** date or leave it as **Forever**.
+4. TrustGuard will automatically create a new transaction on each scheduled date. Recurring items are marked with a small repeat icon in the list.
+
+### Importing from Other Apps
+If you're moving from another app, you can bring your history with you.
+1. From the Group Overview settings, tap **Import Data**.
+2. Select a CSV file exported from **Splitwise** or **Tricount**.
+3. TrustGuard will automatically detect the format and show a preview.
+4. **Map Members:** Match the names found in the CSV to your TrustGuard group members (or create new ones).
+5. Tap **Import** to bring all transactions into your group.
 
 ---
 *Need more help? Check our GitHub repository for community support and updates.*
