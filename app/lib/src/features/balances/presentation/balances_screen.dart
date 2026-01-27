@@ -5,6 +5,7 @@ import '../../../app/providers.dart';
 import '../../../app/app.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/empty_state.dart';
+import '../../../ui/components/balance_progress_bar.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../../ui/animations/staggered_list_animation.dart';
 import '../../../core/utils/haptics.dart';
@@ -105,6 +106,12 @@ class _BalancesScreenState extends ConsumerState<BalancesScreen>
               final sortedBalances = List.of(balances)
                 ..sort((a, b) => b.netAmountMinor.compareTo(a.netAmountMinor));
 
+              final maxAmount = sortedBalances.fold<int>(
+                0,
+                (max, b) =>
+                    b.netAmountMinor.abs() > max ? b.netAmountMinor.abs() : max,
+              );
+
               return RefreshIndicator(
                 onRefresh: _onRefresh,
                 color: Theme.of(context).colorScheme.primary,
@@ -120,32 +127,57 @@ class _BalancesScreenState extends ConsumerState<BalancesScreen>
 
                     final card = Card(
                       margin: const EdgeInsets.only(bottom: AppTheme.space8),
-                      child: ListTile(
-                        title: Text(
-                          balance.memberName,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppTheme.space8,
                         ),
-                        subtitle: Text(
-                          isSettled
-                              ? context.l10n.settled
-                              : isCreditor
-                              ? context.l10n.isOwedLabel
-                              : context.l10n.owesLabel,
-                        ),
-                        trailing: Text(
-                          formatMoney(
-                            balance.netAmountMinor.abs(),
-                            currencyCode: currency,
-                          ),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isSettled
-                                ? null
-                                : isCreditor
-                                ? Colors.green
-                                : Colors.red,
-                          ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              title: Text(
+                                balance.memberName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(
+                                isSettled
+                                    ? context.l10n.settled
+                                    : isCreditor
+                                    ? context.l10n.isOwedLabel
+                                    : context.l10n.owesLabel,
+                              ),
+                              trailing: Text(
+                                formatMoney(
+                                  balance.netAmountMinor.abs(),
+                                  currencyCode: currency,
+                                ),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSettled
+                                      ? null
+                                      : isCreditor
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppTheme.space16,
+                              ),
+                              child: BalanceProgressBar(
+                                amount: balance.netAmountMinor,
+                                maxAmount: maxAmount,
+                                currencyCode: currency,
+                                formatMoney: formatMoney,
+                                showLabel: false,
+                              ),
+                            ),
+                            const SizedBox(height: AppTheme.space8),
+                          ],
                         ),
                       ),
                     );

@@ -6,6 +6,7 @@ import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/core/models/expense.dart';
 import 'package:trustguard/src/core/models/transaction.dart';
 import 'package:trustguard/src/features/balances/presentation/balances_screen.dart';
+import 'package:trustguard/src/ui/components/balance_progress_bar.dart';
 import 'package:uuid/uuid.dart';
 import '../../../helpers/localization_helper.dart';
 import '../../../helpers/shared_prefs_helper.dart';
@@ -123,6 +124,9 @@ void main() {
 
     expect(find.text('Bob'), findsOneWidget);
     expect(find.text('owes'), findsOneWidget);
+
+    // Verify progress bars are present
+    expect(find.byType(BalanceProgressBar), findsNWidgets(2));
 
     await db.close();
     await tester.pump(Duration.zero);
