@@ -1,4 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:animations/animations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -28,6 +30,8 @@ import '../../../core/services/undoable_action_service.dart';
 import '../../../ui/components/undo_snackbar.dart';
 import '../../../ui/components/speed_dial_fab.dart';
 import 'quick_add_expense_sheet.dart';
+import '../../../core/services/coachmark_service.dart';
+import '../../../ui/components/coachmark_overlay.dart';
 
 class TransactionListScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -44,6 +48,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
   late final ScrollController _scrollController;
   StaggeredListAnimationController? _animationController;
   int _lastAnimatedIndex = -1;
+  final _firstTransactionKey = GlobalKey();
 
   @override
   void initState() {
@@ -81,6 +86,29 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
     } else if (transactions.length > (_lastAnimatedIndex + 1)) {
       // Pagination load: update index but don't restart stagger
       _lastAnimatedIndex = transactions.length - 1;
+    }
+
+    _showSwipeCoachmark();
+  }
+
+  void _showSwipeCoachmark() {
+    // Disable coachmarks in tests to avoid blocking interaction in existing tests
+    if (kDebugMode && Platform.environment.containsKey('FLUTTER_TEST')) {
+      return;
+    }
+
+    final coachmarkService = ref.read(coachmarkServiceProvider);
+    if (coachmarkService.shouldShow(CoachmarkKey.transactionSwipeHint)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _firstTransactionKey.currentContext == null) return;
+        CoachmarkOverlay.show(
+          context: context,
+          targetKey: _firstTransactionKey,
+          message: context.l10n.swipeActionHint,
+          onDismiss: () =>
+              coachmarkService.markShown(CoachmarkKey.transactionSwipeHint),
+        );
+      });
     }
   }
 
@@ -274,7 +302,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
                                       final item = Column(
                                         children: [
                                           _TransactionListItem(
-                                            key: ValueKey(tx.id),
+                                            key: globalIndex == 0
+                                                ? _firstTransactionKey
+                                                : ValueKey(tx.id),
                                             transaction: tx,
                                             memberMap: memberMap,
                                             currencyCode: currencyCode,

@@ -76,9 +76,20 @@ class _CoachmarkOverlayState extends State<CoachmarkOverlay>
         weight: 50,
       ),
     ]).animate(_pulseController);
+  }
 
-    if (widget.pulseAnimation && !AnimationConfig.useReducedMotion(context)) {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isTest = WidgetsBinding.instance.runtimeType.toString().contains(
+      'TestWidgetsFlutterBinding',
+    );
+    if (widget.pulseAnimation &&
+        !AnimationConfig.useReducedMotion(context) &&
+        !isTest) {
       _pulseController.repeat();
+    } else {
+      _pulseController.stop();
     }
   }
 

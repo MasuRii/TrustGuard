@@ -289,5 +289,7 @@
   "groupArchived": "Group archived",
   "memberRemoved": "Member removed",
   "selectGroup": "Select Group",
-  "noGroupsImportMessage": "You need to create a group before you can import data."
+  "noGroupsImportMessage": "You need to create a group before you can import data.",
+  "swipeActionHint": "Swipe left to edit or delete transactions",
+  "receiptScanHint": "Tap to scan a receipt and auto-fill the amount"
 }

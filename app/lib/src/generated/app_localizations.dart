@@ -1023,6 +1023,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You need to create a group before you can import data.'**
   String get noGroupsImportMessage;
+
+  /// No description provided for @swipeActionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe left to edit or delete transactions'**
+  String get swipeActionHint;
+
+  /// No description provided for @receiptScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to scan a receipt and auto-fill the amount'**
+  String get receiptScanHint;
 }
 
 class _AppLocalizationsDelegate

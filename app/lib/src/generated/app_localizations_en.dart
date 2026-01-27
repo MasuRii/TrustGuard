@@ -540,4 +540,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noGroupsImportMessage =>
       'You need to create a group before you can import data.';
+
+  @override
+  String get swipeActionHint => 'Swipe left to edit or delete transactions';
+
+  @override
+  String get receiptScanHint =>
+      'Tap to scan a receipt and auto-fill the amount';
 }
