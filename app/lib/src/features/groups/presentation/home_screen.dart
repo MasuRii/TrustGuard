@@ -10,6 +10,7 @@ import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../../ui/components/skeletons/skeleton_list_item.dart';
 import '../../../ui/animations/lottie_assets.dart';
 import '../../../ui/animations/staggered_list_animation.dart';
+import '../../../ui/components/animated_archive_icon.dart';
 import '../../dashboard/presentation/widgets/dashboard_card.dart';
 import '../../dashboard/presentation/widgets/recent_activity_list.dart';
 import '../../../core/utils/haptics.dart';
@@ -173,7 +174,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         title: Text(context.l10n.appTitle),
         actions: [
           IconButton(
-            icon: Icon(showArchived ? Icons.archive : Icons.archive_outlined),
+            icon: AnimatedArchiveIcon(isArchived: showArchived),
             onPressed: () =>
                 ref.read(showArchivedGroupsProvider.notifier).state =
                     !showArchived,
@@ -338,8 +339,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                         PopupMenuItem(
                                           value: 'archive',
                                           child: ListTile(
-                                            leading: const Icon(
-                                              Icons.archive_outlined,
+                                            leading: const AnimatedArchiveIcon(
+                                              isArchived: false,
                                             ),
                                             title: Text(context.l10n.archive),
                                             contentPadding: EdgeInsets.zero,
@@ -351,8 +352,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                         PopupMenuItem(
                                           value: 'unarchive',
                                           child: ListTile(
-                                            leading: const Icon(
-                                              Icons.unarchive_outlined,
+                                            leading: const AnimatedArchiveIcon(
+                                              isArchived: true,
                                             ),
                                             title: Text(context.l10n.unarchive),
                                             contentPadding: EdgeInsets.zero,
