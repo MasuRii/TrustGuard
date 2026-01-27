@@ -6,6 +6,7 @@ import '../../../app/providers.dart';
 import '../../../core/models/reminder_settings.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/speed_dial_fab.dart';
+import '../../transactions/presentation/quick_add_expense_sheet.dart';
 import 'groups_providers.dart';
 
 class GroupOverviewScreen extends ConsumerWidget {
@@ -24,6 +25,20 @@ class GroupOverviewScreen extends ConsumerWidget {
         }
 
         final l10n = AppLocalizations.of(context)!;
+
+        void showQuickAdd() {
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (context) => QuickAddExpenseSheet(
+              groupId: group.id,
+              onSuccess: () {
+                // Providers will refresh automatically due to StreamProvider
+              },
+            ),
+          );
+        }
 
         return Scaffold(
           appBar: AppBar(
@@ -71,6 +86,11 @@ class GroupOverviewScreen extends ConsumerWidget {
           ),
           floatingActionButton: SpeedDialFab(
             items: [
+              SpeedDialItem(
+                icon: Icons.bolt,
+                label: l10n.quickAdd,
+                onPressed: showQuickAdd,
+              ),
               SpeedDialItem(
                 icon: Icons.receipt_long_outlined,
                 label: l10n.addExpense,
