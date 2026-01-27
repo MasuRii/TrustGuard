@@ -24,6 +24,7 @@ import '../../../ui/components/amount_input_field.dart';
 import '../../../ui/components/amount_suggestion_chips.dart';
 import '../../../ui/components/coachmark_overlay.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/components/haptic_slider.dart';
 import '../../ocr/models/receipt_data.dart';
 import '../../ocr/providers/ocr_providers.dart';
 import 'widgets/split_preview_bar.dart';
@@ -838,71 +839,110 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                       final member = members.firstWhere(
                                         (m) => m.id == id,
                                       );
+                                      final totalAmountDouble =
+                                          double.tryParse(
+                                            _amountController.text,
+                                          ) ??
+                                          0.0;
+                                      final currentAmount =
+                                          double.tryParse(
+                                            _customAmountControllers[id]
+                                                    ?.text ??
+                                                '0',
+                                          ) ??
+                                          0.0;
+
                                       return Padding(
                                         padding: const EdgeInsets.only(
                                           bottom: AppTheme.space12,
                                         ),
-                                        child: Row(
+                                        child: Column(
                                           children: [
-                                            CircleAvatar(
-                                              radius: 16,
-                                              backgroundColor: Theme.of(context)
-                                                  .colorScheme
-                                                  .surfaceContainerHighest,
-                                              child: Text(
-                                                _getInitials(
-                                                  member.displayName,
-                                                ),
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              width: AppTheme.space12,
-                                            ),
-                                            Expanded(
-                                              child: Text(
-                                                member.displayName,
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.bodyMedium,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width: 120,
-                                              child: TextFormField(
-                                                controller:
-                                                    _customAmountControllers[id],
-                                                decoration: InputDecoration(
-                                                  labelText: 'Amount',
-                                                  prefixText: '$currency ',
-                                                  isDense: true,
-                                                  border:
-                                                      const OutlineInputBorder(),
-                                                ),
-                                                keyboardType:
-                                                    const TextInputType.numberWithOptions(
-                                                      decimal: true,
+                                            Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 16,
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .surfaceContainerHighest,
+                                                  child: Text(
+                                                    _getInitials(
+                                                      member.displayName,
                                                     ),
-                                                onChanged: (_) =>
-                                                    setState(() {}),
-                                                validator: (value) {
-                                                  if (value == null ||
-                                                      value.isEmpty) {
-                                                    return 'Required';
-                                                  }
-                                                  if (double.tryParse(value) ==
-                                                      null) {
-                                                    return 'Invalid';
-                                                  }
-                                                  return null;
-                                                },
-                                              ),
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurfaceVariant,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  width: AppTheme.space12,
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    member.displayName,
+                                                    style: Theme.of(
+                                                      context,
+                                                    ).textTheme.bodyMedium,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  width: 120,
+                                                  child: TextFormField(
+                                                    controller:
+                                                        _customAmountControllers[id],
+                                                    decoration: InputDecoration(
+                                                      labelText: 'Amount',
+                                                      prefixText: '$currency ',
+                                                      isDense: true,
+                                                      border:
+                                                          const OutlineInputBorder(),
+                                                    ),
+                                                    keyboardType:
+                                                        const TextInputType.numberWithOptions(
+                                                          decimal: true,
+                                                        ),
+                                                    onChanged: (_) =>
+                                                        setState(() {}),
+                                                    validator: (value) {
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return 'Required';
+                                                      }
+                                                      if (double.tryParse(
+                                                            value,
+                                                          ) ==
+                                                          null) {
+                                                        return 'Invalid';
+                                                      }
+                                                      return null;
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
                                             ),
+                                            if (totalAmountDouble > 0)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 44.0,
+                                                ),
+                                                child: HapticSlider(
+                                                  value: currentAmount.clamp(
+                                                    0.0,
+                                                    totalAmountDouble,
+                                                  ),
+                                                  max: totalAmountDouble,
+                                                  onChanged: (value) {
+                                                    _customAmountControllers[id]
+                                                        ?.text = value
+                                                        .toStringAsFixed(2);
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                              ),
                                           ],
                                         ),
                                       );
