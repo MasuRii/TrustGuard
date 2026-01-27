@@ -63,7 +63,9 @@ void main() {
     final groupId = const Uuid().v4();
     await setupData(groupId);
 
-    final prefsOverrides = await getSharedPrefsOverride();
+    final prefsOverrides = await getSharedPrefsOverride(
+      customKeypadEnabled: false,
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -142,7 +144,9 @@ void main() {
           ),
         );
 
-    final prefsOverrides = await getSharedPrefsOverride();
+    final prefsOverrides = await getSharedPrefsOverride(
+      customKeypadEnabled: false,
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -188,7 +192,9 @@ void main() {
     final groupId = const Uuid().v4();
     await setupData(groupId);
 
-    final prefsOverrides = await getSharedPrefsOverride();
+    final prefsOverrides = await getSharedPrefsOverride(
+      customKeypadEnabled: false,
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -203,17 +209,22 @@ void main() {
     await tester.enterText(find.byType(TextFormField).first, '100.00');
 
     // Switch to custom split
+    await tester.ensureVisible(find.text('Split Equally'));
     await tester.tap(find.text('Split Equally'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Split Customly').last);
     await tester.tap(find.text('Split Customly').last);
     await tester.pumpAndSettle();
 
     // Fill in custom amounts: m1 (Alice) = 60, m2 (Bob) = 40
+    await tester.ensureVisible(find.byType(TextFormField).at(2));
     await tester.enterText(find.byType(TextFormField).at(2), '60.00');
+    await tester.ensureVisible(find.byType(TextFormField).at(3));
     await tester.enterText(find.byType(TextFormField).at(3), '40.00');
     await tester.pumpAndSettle();
 
     // Tap Save
+    await tester.ensureVisible(find.byTooltip('Save'));
     await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
 

@@ -75,12 +75,21 @@ void main() {
     expect(find.text('Rounding'), findsOneWidget);
     expect(find.text('Security'), findsOneWidget);
     expect(find.text('Set PIN'), findsOneWidget);
+
+    // Scroll to find Notifications
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+
     expect(find.text('Notifications'), findsOneWidget);
     expect(find.text('Enable Reminders'), findsOneWidget);
+
+    // Scroll to find Data
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
     expect(find.text('Data'), findsOneWidget);
 
     // Scroll to bottom to find 'About'
-    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
     await tester.pumpAndSettle();
     expect(find.text('About'), findsOneWidget);
   });
@@ -150,6 +159,10 @@ void main() {
     addTearDown(container.dispose);
 
     await tester.pumpWidget(createTestWidget(container));
+    await tester.pumpAndSettle();
+
+    // Scroll to find Notifications
+    await tester.drag(find.byType(ListView), const Offset(0, -600));
     await tester.pumpAndSettle();
 
     final switchFinder = find.widgetWithText(

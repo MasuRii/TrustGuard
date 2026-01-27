@@ -51,7 +51,9 @@ void main() {
           TagsCompanion.insert(id: tagId, groupId: groupId, name: 'Food'),
         );
 
-    final prefsOverrides = await getSharedPrefsOverride();
+    final prefsOverrides = await getSharedPrefsOverride(
+      customKeypadEnabled: false,
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -66,11 +68,13 @@ void main() {
     await tester.enterText(find.byType(TextFormField).first, '100');
 
     // Select tag
+    await tester.ensureVisible(find.text('Food'));
     expect(find.text('Food'), findsOneWidget);
     await tester.tap(find.text('Food'));
     await tester.pumpAndSettle();
 
     // Save
+    await tester.ensureVisible(find.byTooltip('Save'));
     await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
 

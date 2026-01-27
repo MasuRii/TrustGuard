@@ -61,7 +61,9 @@ void main() {
     final groupId = const Uuid().v4();
     await setupData(groupId);
 
-    final prefsOverrides = await getSharedPrefsOverride();
+    final prefsOverrides = await getSharedPrefsOverride(
+      customKeypadEnabled: false,
+    );
 
     await tester.pumpWidget(
       ProviderScope(

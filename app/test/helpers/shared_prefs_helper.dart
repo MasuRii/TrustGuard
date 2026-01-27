@@ -4,9 +4,11 @@ import 'package:trustguard/src/app/providers.dart';
 
 Future<List<Override>> getSharedPrefsOverride({
   bool onboardingComplete = true,
+  bool customKeypadEnabled = true,
 }) async {
   SharedPreferences.setMockInitialValues({
     'onboarding_complete': onboardingComplete,
+    'custom_keypad_enabled': customKeypadEnabled,
   });
   final prefs = await SharedPreferences.getInstance();
   return [sharedPreferencesProvider.overrideWithValue(prefs)];

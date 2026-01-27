@@ -14,8 +14,8 @@ void main() {
       await db.close();
     });
 
-    test('Initial schema version is 2', () async {
-      expect(db.schemaVersion, 2);
+    test('Initial schema version is 4', () async {
+      expect(db.schemaVersion, 4);
     });
 
     test('Can create and open database with all tables', () async {
