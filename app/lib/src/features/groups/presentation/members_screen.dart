@@ -23,6 +23,7 @@ class MembersScreen extends ConsumerStatefulWidget {
 
 class _MembersScreenState extends ConsumerState<MembersScreen> {
   final _nameController = TextEditingController();
+  List<Member>? _localMembers;
 
   Future<void> _onRefresh() async {
     HapticsService.lightTap();
@@ -155,10 +156,50 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     }
   }
 
+  Future<void> _onReorder(int oldIndex, int newIndex) async {
+    if (_localMembers == null) return;
+
+    setState(() {
+      if (newIndex > oldIndex) newIndex -= 1;
+      final item = _localMembers!.removeAt(oldIndex);
+      _localMembers!.insert(newIndex, item);
+    });
+
+    HapticsService.lightTap();
+
+    final memberIds = _localMembers!.map((m) => m.id).toList();
+    try {
+      await ref
+          .read(memberRepositoryProvider)
+          .updateMemberOrder(widget.groupId, memberIds);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating order: $e')));
+        // Re-invalidate to get correct order from DB
+        ref.invalidate(membersByGroupProvider(widget.groupId));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
     final showRemoved = ref.watch(showRemovedMembersProvider(widget.groupId));
+
+    ref.listen(membersByGroupProvider(widget.groupId), (prev, next) {
+      next.whenData((members) {
+        setState(() {
+          _localMembers = List.from(members);
+        });
+      });
+    });
+
+    // Initial population
+    if (_localMembers == null && membersAsync.hasValue) {
+      _localMembers = List.from(membersAsync.value!);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -171,6 +212,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                       .read(showRemovedMembersProvider(widget.groupId).notifier)
                       .state =
                   !showRemoved;
+              // Reset local members to ensure they are re-fetched/re-sorted correctly
+              _localMembers = null;
             },
             tooltip: showRemoved ? 'Hide removed' : 'Show removed',
           ),
@@ -222,7 +265,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               backgroundColor: Theme.of(context).colorScheme.surface,
               child: membersAsync.when(
                 data: (members) {
-                  if (members.isEmpty) {
+                  final displayList = _localMembers ?? members;
+
+                  if (displayList.isEmpty) {
                     return SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: SizedBox(
@@ -236,42 +281,40 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                     );
                   }
 
+                  final canReorder = !showRemoved && displayList.length > 1;
+
+                  if (canReorder) {
+                    return ReorderableListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      key: const PageStorageKey('members_reorder_list'),
+                      onReorder: _onReorder,
+                      buildDefaultDragHandles: false,
+                      itemCount: displayList.length,
+                      itemBuilder: (context, index) {
+                        final member = displayList[index];
+                        return _buildMemberTile(
+                          member,
+                          index,
+                          canReorder: true,
+                          totalCount: displayList.length,
+                        );
+                      },
+                    );
+                  }
+
                   return ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
                     key: const PageStorageKey('members_list'),
-                    itemCount: members.length,
+                    itemCount: displayList.length,
                     separatorBuilder: (context, index) =>
                         const Divider(height: 1),
                     itemBuilder: (context, index) {
-                      final member = members[index];
-                      final isRemoved = member.removedAt != null;
-
-                      return ListTile(
-                        key: ValueKey(member.id),
-                        leading: CircleAvatar(
-                          child: Text(member.displayName[0].toUpperCase()),
-                        ),
-
-                        title: Text(
-                          member.displayName,
-                          style: TextStyle(
-                            decoration: isRemoved
-                                ? TextDecoration.lineThrough
-                                : null,
-                            color: isRemoved ? Colors.grey : null,
-                          ),
-                        ),
-                        trailing: isRemoved
-                            ? IconButton(
-                                icon: const Icon(Icons.restore),
-                                onPressed: () => _restoreMember(member),
-                                tooltip: 'Restore',
-                              )
-                            : IconButton(
-                                icon: const Icon(Icons.person_remove_outlined),
-                                onPressed: () => _removeMember(member),
-                                tooltip: 'Remove',
-                              ),
+                      final member = displayList[index];
+                      return _buildMemberTile(
+                        member,
+                        index,
+                        canReorder: false,
+                        totalCount: displayList.length,
                       );
                     },
                   );
@@ -289,6 +332,52 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               onPressed: () => setState(() => _isAdding = true),
               child: const Icon(Icons.person_add),
             ),
+    );
+  }
+
+  Widget _buildMemberTile(
+    Member member,
+    int index, {
+    required bool canReorder,
+    required int totalCount,
+  }) {
+    final isRemoved = member.removedAt != null;
+
+    return ListTile(
+      key: ValueKey(member.id),
+      leading: CircleAvatar(child: Text(member.displayName[0].toUpperCase())),
+      title: Text(
+        member.displayName,
+        style: TextStyle(
+          decoration: isRemoved ? TextDecoration.lineThrough : null,
+          color: isRemoved ? Colors.grey : null,
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isRemoved)
+            IconButton(
+              icon: const Icon(Icons.restore),
+              onPressed: () => _restoreMember(member),
+              tooltip: 'Restore',
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.person_remove_outlined),
+              onPressed: () => _removeMember(member),
+              tooltip: 'Remove',
+            ),
+          if (canReorder)
+            ReorderableDragStartListener(
+              index: index,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: AppTheme.space8),
+                child: Icon(Icons.drag_handle, color: Colors.grey),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
