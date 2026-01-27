@@ -3,8 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/member.dart';
+import '../../../core/models/transaction_filter.dart';
+import '../../../core/services/undoable_action_service.dart';
+import '../../../ui/components/undo_snackbar.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../core/utils/haptics.dart';
+import '../../../generated/app_localizations.dart';
 import 'groups_providers.dart';
 
 class MembersScreen extends ConsumerStatefulWidget {
@@ -60,26 +64,80 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
   }
 
   Future<void> _removeMember(Member member) async {
-    final repository = ref.read(memberRepositoryProvider);
-    try {
-      await repository.softDeleteMember(member.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${member.displayName} removed'),
-            action: SnackBarAction(
-              label: 'Undo',
-              onPressed: () => repository.undoSoftDeleteMember(member.id),
-            ),
+    final hasActivity =
+        await ref
+            .read(transactionRepositoryProvider)
+            .getTransactionCountByGroup(
+              widget.groupId,
+              filter: TransactionFilter(memberIds: {member.id}),
+            ) >
+        0;
+
+    if (hasActivity && mounted) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Remove Member?'),
+          content: Text(
+            '${member.displayName} has associated transactions. Removing them will hide them from the list, but their data will remain in the records.',
           ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error removing member: $e')));
-      }
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(AppLocalizations.of(context)!.remove),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
+
+    _scheduleMemberRemove(member);
+  }
+
+  void _scheduleMemberRemove(Member member) {
+    final undoService = ref.read(undoableActionProvider);
+    final repository = ref.read(memberRepositoryProvider);
+    final l10n = AppLocalizations.of(context)!;
+
+    // Optimistically hide
+    ref
+        .read(optimisticallyRemovedMemberIdsProvider.notifier)
+        .update((state) => {...state, member.id});
+
+    final action = UndoableAction(
+      id: 'remove_member_${member.id}',
+      description: l10n.memberRemoved,
+      executeAction: () async {
+        await repository.softDeleteMember(member.id);
+        if (mounted) {
+          ref
+              .read(optimisticallyRemovedMemberIdsProvider.notifier)
+              .update((state) => state.where((id) => id != member.id).toSet());
+        }
+      },
+      undoAction: () async {
+        if (mounted) {
+          ref
+              .read(optimisticallyRemovedMemberIdsProvider.notifier)
+              .update((state) => state.where((id) => id != member.id).toSet());
+        }
+      },
+    );
+
+    undoService.schedule(action);
+
+    if (mounted) {
+      showUndoSnackBar(
+        context: context,
+        message: l10n.memberRemoved,
+        actionId: action.id,
+        undoService: undoService,
+      );
     }
   }
 

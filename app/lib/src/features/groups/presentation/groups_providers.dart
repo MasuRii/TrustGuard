@@ -29,6 +29,10 @@ final groupsWithMemberCountProvider =
 final optimisticallyHiddenGroupIdsProvider =
     StateProvider.autoDispose<Set<String>>((ref) => {});
 
+/// Provider for IDs of members that are optimistically hidden (e.g. during remove undo).
+final optimisticallyRemovedMemberIdsProvider =
+    StateProvider.autoDispose<Set<String>>((ref) => {});
+
 /// Provider for a single group by its ID.
 final groupProvider = FutureProvider.autoDispose.family<Group?, String>((
   ref,
@@ -56,8 +60,18 @@ final membersByGroupProvider = StreamProvider.autoDispose
     .family<List<Member>, String>((ref, groupId) {
       final repository = ref.watch(memberRepositoryProvider);
       final includeRemoved = ref.watch(showRemovedMembersProvider(groupId));
-      return repository.watchMembersByGroup(
-        groupId,
-        includeRemoved: includeRemoved,
+      final optimisticallyRemovedIds = ref.watch(
+        optimisticallyRemovedMemberIdsProvider,
       );
+
+      return repository
+          .watchMembersByGroup(groupId, includeRemoved: includeRemoved)
+          .map((members) {
+            if (includeRemoved || optimisticallyRemovedIds.isEmpty) {
+              return members;
+            }
+            return members
+                .where((m) => !optimisticallyRemovedIds.contains(m.id))
+                .toList();
+          });
     });
