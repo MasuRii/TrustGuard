@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:trustguard/src/ui/components/empty_state.dart';
 
 void main() {
@@ -23,6 +24,7 @@ void main() {
       expect(find.text('No Data'), findsOneWidget);
       expect(find.text('Check back later'), findsOneWidget);
       expect(find.byType(SvgPicture), findsNothing);
+      expect(find.byType(Lottie), findsNothing);
     });
 
     testWidgets('EmptyState renders SVG when provided', (tester) async {
@@ -42,6 +44,26 @@ void main() {
       expect(find.byType(SvgPicture), findsOneWidget);
       expect(find.text('No Transactions'), findsOneWidget);
       expect(find.byIcon(Icons.receipt_long_outlined), findsNothing);
+      expect(find.byType(Lottie), findsNothing);
+    });
+
+    testWidgets('EmptyState renders Lottie when provided', (tester) async {
+      const lottiePath = 'assets/animations/empty_list.json';
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: EmptyState(
+              lottiePath: lottiePath,
+              title: 'Empty List',
+              message: 'Add something here',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(Lottie), findsOneWidget);
+      expect(find.text('Empty List'), findsOneWidget);
+      expect(find.byType(SvgPicture), findsNothing);
     });
 
     testWidgets('EmptyState shows action button and handles tap', (
@@ -71,8 +93,34 @@ void main() {
       expect(pressed, isTrue);
     });
 
+    testWidgets('EmptyState falls back to icon when Lottie fails', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: EmptyState(
+              lottiePath: 'invalid_path.json',
+              icon: Icons.error,
+              title: 'Error',
+              message: 'Failed to load',
+            ),
+          ),
+        ),
+      );
+
+      // Trigger the error in Lottie.asset
+      // Note: Lottie.asset errorBuilder is called when loading fails.
+      // In widget tests, we might need to pump enough times or trigger it.
+      await tester.pump();
+
+      // Since 'invalid_path.json' won't be found in mock assets, it should trigger errorBuilder
+      // In a real test environment with lottie, this should show the icon.
+      expect(find.byIcon(Icons.error), findsOneWidget);
+    });
+
     testWidgets(
-      'EmptyState throws error if neither icon nor svgPath provided',
+      'EmptyState throws error if neither icon, svgPath nor lottiePath provided',
       (tester) async {
         expect(
           () => EmptyState(title: 'T', message: 'M'),
