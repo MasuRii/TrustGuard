@@ -20,6 +20,7 @@ import '../../../core/utils/validators.dart';
 import '../../../ui/animations/shake_widget.dart';
 import '../../../ui/components/member_avatar_selector.dart';
 import '../../../ui/components/amount_input_field.dart';
+import '../../../ui/components/amount_suggestion_chips.dart';
 import '../../../ui/components/coachmark_overlay.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../ocr/models/receipt_data.dart';
@@ -483,6 +484,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
     final groupAsync = ref.watch(groupStreamProvider(widget.groupId));
+    final suggestionsAsync = ref.watch(
+      amountSuggestionsProvider(widget.groupId),
+    );
     final useCustomKeypad = ref.watch(customKeypadProvider);
     final isEdit = widget.transactionId != null;
 
@@ -593,6 +597,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             if (useCustomKeypad && !_isDifferentCurrency) ...[
+                              _buildAmountSuggestions(
+                                suggestionsAsync,
+                                currency,
+                              ),
                               Card(
                                 margin: const EdgeInsets.only(
                                   bottom: AppTheme.space24,
@@ -605,6 +613,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: AmountInputField(
+                                  key: ValueKey(
+                                    'amount_${_amountController.text}',
+                                  ),
                                   initialValue: MoneyUtils.toMinorUnits(
                                     double.tryParse(_amountController.text) ??
                                         0,
@@ -623,6 +634,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             _buildCurrencySection(currency),
                             const SizedBox(height: AppTheme.space16),
                             if (!useCustomKeypad || _isDifferentCurrency) ...[
+                              _buildAmountSuggestions(
+                                suggestionsAsync,
+                                currency,
+                              ),
                               Semantics(
                                 label: 'Expense amount in $currency',
                                 child: TextFormField(
@@ -1120,6 +1135,36 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               }).toList(),
             ),
           ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildAmountSuggestions(
+    AsyncValue<List<int>> suggestionsAsync,
+    String currency,
+  ) {
+    return suggestionsAsync.when(
+      data: (suggestions) {
+        if (suggestions.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppTheme.space8),
+          child: AmountSuggestionChips(
+            suggestions: suggestions,
+            currencyCode: currency,
+            onSelected: (amount) {
+              setState(() {
+                _amountController.text = MoneyUtils.fromMinorUnits(
+                  amount,
+                ).toStringAsFixed(2);
+                if (_isDifferentCurrency) {
+                  _calculateOriginalAmount();
+                }
+              });
+            },
+          ),
         );
       },
       loading: () => const SizedBox.shrink(),

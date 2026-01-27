@@ -34,6 +34,13 @@ final attachmentsProvider = FutureProvider.autoDispose
       return repo.getAttachmentsByTransaction(txId);
     });
 
+/// Provider for smart amount suggestions.
+final amountSuggestionsProvider = FutureProvider.autoDispose
+    .family<List<int>, String>((ref, groupId) {
+      final service = ref.watch(amountSuggestionServiceProvider);
+      return service.getSuggestions(groupId);
+    });
+
 /// Provider for recurring transaction by template ID.
 final recurringByTemplateProvider = FutureProvider.autoDispose
     .family<RecurringTransaction?, String>((ref, templateId) {
