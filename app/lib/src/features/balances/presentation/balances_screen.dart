@@ -2,31 +2,82 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/providers.dart';
+import '../../../app/app.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
+import '../../../ui/animations/staggered_list_animation.dart';
 import '../../../core/utils/haptics.dart';
 import '../../groups/presentation/groups_providers.dart';
 import '../services/balance_service.dart';
 
-class BalancesScreen extends ConsumerWidget {
+class BalancesScreen extends ConsumerStatefulWidget {
   final String groupId;
 
   const BalancesScreen({super.key, required this.groupId});
 
-  Future<void> _onRefresh(WidgetRef ref) async {
+  @override
+  ConsumerState<BalancesScreen> createState() => _BalancesScreenState();
+}
+
+class _BalancesScreenState extends ConsumerState<BalancesScreen>
+    with SingleTickerProviderStateMixin {
+  StaggeredListAnimationController? _staggeredController;
+  int _lastItemCount = 0;
+
+  @override
+  void dispose() {
+    _staggeredController?.dispose();
+    super.dispose();
+  }
+
+  void _updateAnimationController(int count) {
+    if (_staggeredController != null && _lastItemCount == count) {
+      _staggeredController?.reset();
+      _staggeredController?.startAnimation();
+      return;
+    }
+
+    _staggeredController?.dispose();
+    _staggeredController = StaggeredListAnimationController(
+      vsync: this,
+      itemCount: count,
+    );
+    _lastItemCount = count;
+    _staggeredController!.startAnimation();
+  }
+
+  Future<void> _onRefresh() async {
     HapticsService.lightTap();
-    ref.invalidate(groupBalancesProvider(groupId));
-    await ref.read(groupBalancesProvider(groupId).future);
+    ref.invalidate(groupBalancesProvider(widget.groupId));
+    await ref.read(groupBalancesProvider(widget.groupId).future);
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final balancesAsync = ref.watch(groupBalancesProvider(groupId));
-    final groupAsync = ref.watch(groupStreamProvider(groupId));
+  Widget build(BuildContext context) {
+    final balancesAsync = ref.watch(groupBalancesProvider(widget.groupId));
+    final groupAsync = ref.watch(groupStreamProvider(widget.groupId));
     final formatMoney = ref.watch(moneyFormatterProvider);
 
+    // Restart animation when data changes
+    ref.listen(groupBalancesProvider(widget.groupId), (previous, next) {
+      next.whenData((balances) {
+        if (balances.isNotEmpty) {
+          _updateAnimationController(balances.length);
+        }
+      });
+    });
+
+    // Initial load check
+    balancesAsync.whenData((balances) {
+      if (balances.isNotEmpty && _staggeredController == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _updateAnimationController(balances.length);
+        });
+      }
+    });
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Balances')),
+      appBar: AppBar(title: Text(context.l10n.balance)),
       body: groupAsync.when(
         data: (group) {
           final currency = group?.currencyCode ?? 'USD';
@@ -34,13 +85,15 @@ class BalancesScreen extends ConsumerWidget {
             data: (balances) {
               if (balances.isEmpty) {
                 return RefreshIndicator(
-                  onRefresh: () => _onRefresh(ref),
-                  child: const SingleChildScrollView(
-                    physics: AlwaysScrollableScrollPhysics(),
+                  onRefresh: _onRefresh,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     child: Center(
                       child: Padding(
-                        padding: EdgeInsets.only(top: AppTheme.space32),
-                        child: Text('No members in this group'),
+                        padding: const EdgeInsets.only(top: AppTheme.space32),
+                        child: Text(
+                          context.l10n.calculating,
+                        ), // Fallback or appropriate message
                       ),
                     ),
                   ),
@@ -52,7 +105,7 @@ class BalancesScreen extends ConsumerWidget {
                 ..sort((a, b) => b.netAmountMinor.compareTo(a.netAmountMinor));
 
               return RefreshIndicator(
-                onRefresh: () => _onRefresh(ref),
+                onRefresh: _onRefresh,
                 color: Theme.of(context).colorScheme.primary,
                 backgroundColor: Theme.of(context).colorScheme.surface,
                 child: ListView.builder(
@@ -64,7 +117,7 @@ class BalancesScreen extends ConsumerWidget {
                     final isSettled = balance.netAmountMinor == 0;
                     final isCreditor = balance.netAmountMinor > 0;
 
-                    return Card(
+                    final card = Card(
                       margin: const EdgeInsets.only(bottom: AppTheme.space8),
                       child: ListTile(
                         title: Text(
@@ -73,10 +126,10 @@ class BalancesScreen extends ConsumerWidget {
                         ),
                         subtitle: Text(
                           isSettled
-                              ? 'Settled'
+                              ? context.l10n.settled
                               : isCreditor
-                              ? 'is owed'
-                              : 'owes',
+                              ? context.l10n.isOwedLabel
+                              : context.l10n.owesLabel,
                         ),
                         trailing: Text(
                           formatMoney(
@@ -95,6 +148,15 @@ class BalancesScreen extends ConsumerWidget {
                         ),
                       ),
                     );
+
+                    if (_staggeredController != null) {
+                      return StaggeredListItem(
+                        animation: _staggeredController!.getAnimation(index),
+                        child: card,
+                      );
+                    }
+
+                    return card;
                   },
                 ),
               );
@@ -107,8 +169,8 @@ class BalancesScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Error loading group: $e')),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/group/$groupId/settlements'),
-        label: const Text('Settle Up'),
+        onPressed: () => context.push('/group/${widget.groupId}/settlements'),
+        label: Text(context.l10n.settlements),
         icon: const Icon(Icons.payments_outlined),
       ),
     );
