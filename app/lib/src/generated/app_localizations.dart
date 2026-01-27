@@ -993,6 +993,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get save;
+
+  /// No description provided for @selectGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Group'**
+  String get selectGroup;
+
+  /// No description provided for @noGroupsImportMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to create a group before you can import data.'**
+  String get noGroupsImportMessage;
 }
 
 class _AppLocalizationsDelegate

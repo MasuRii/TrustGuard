@@ -524,4 +524,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get save => 'Save';
+
+  @override
+  String get selectGroup => 'Select Group';
+
+  @override
+  String get noGroupsImportMessage =>
+      'You need to create a group before you can import data.';
 }

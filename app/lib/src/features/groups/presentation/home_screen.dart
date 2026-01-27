@@ -12,6 +12,7 @@ import '../../../ui/animations/staggered_list_animation.dart';
 import '../../dashboard/presentation/widgets/dashboard_card.dart';
 import '../../dashboard/presentation/widgets/recent_activity_list.dart';
 import '../../../core/utils/haptics.dart';
+import '../../../ui/components/speed_dial_fab.dart';
 import 'groups_providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -53,6 +54,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     ref.invalidate(groupsWithMemberCountProvider);
     await ref.read(groupsWithMemberCountProvider.future);
     // Animation will be restarted via ref.listen or whenData check
+  }
+
+  Future<void> _showGroupSelectionForImport() async {
+    final groups = ref.read(groupsWithMemberCountProvider).value ?? [];
+
+    if (groups.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.noGroupsImportMessage)),
+      );
+      return;
+    }
+
+    final selectedGroupId = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.selectGroup),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: groups.length,
+            itemBuilder: (context, index) {
+              final group = groups[index].group;
+              return ListTile(
+                title: Text(group.name),
+                onTap: () => Navigator.pop(context, group.id),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.cancel),
+          ),
+        ],
+      ),
+    );
+
+    if (selectedGroupId != null && mounted) {
+      context.push('/group/$selectedGroupId/import');
+    }
   }
 
   @override
@@ -345,10 +389,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/group/create'),
-        icon: const Icon(Icons.add),
-        label: Text(context.l10n.newGroup),
+      floatingActionButton: SpeedDialFab(
+        mainIcon: Icons.add,
+        items: [
+          SpeedDialItem(
+            icon: Icons.group_add,
+            label: context.l10n.newGroup,
+            onPressed: () => context.push('/group/create'),
+          ),
+          SpeedDialItem(
+            icon: Icons.upload_file,
+            label: context.l10n.importData,
+            onPressed: _showGroupSelectionForImport,
+          ),
+        ],
       ),
     );
   }
