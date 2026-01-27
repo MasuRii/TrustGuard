@@ -25,6 +25,7 @@ import '../features/onboarding/services/onboarding_service.dart';
 import '../features/onboarding/models/onboarding_state.dart';
 import '../features/transactions/services/attachment_service.dart';
 import '../features/transactions/services/recurrence_service.dart';
+import '../core/services/coachmark_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
 
@@ -255,6 +256,12 @@ final recurrenceServiceProvider = Provider<RecurrenceService>((ref) {
     recurringRepo: recurringRepo,
     transactionRepo: transactionRepo,
   );
+});
+
+/// Provider for [CoachmarkService].
+final coachmarkServiceProvider = Provider<CoachmarkService>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return CoachmarkService(prefs);
 });
 
 /// Provider for attachment storage usage.
