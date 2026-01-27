@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,12 +13,14 @@ import '../../../core/models/member.dart';
 import '../../../core/models/recurring_transaction.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
+import '../../../core/services/coachmark_service.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
 import '../../../ui/animations/shake_widget.dart';
 import '../../../ui/components/member_avatar_selector.dart';
 import '../../../ui/components/amount_input_field.dart';
+import '../../../ui/components/coachmark_overlay.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../ocr/models/receipt_data.dart';
 import '../../ocr/providers/ocr_providers.dart';
@@ -50,6 +54,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   final _saveButtonKey = GlobalKey<ShakeWidgetState>();
   final _appBarSaveKey = GlobalKey<ShakeWidgetState>();
   final _splitPreviewKey = GlobalKey<ShakeWidgetState>();
+  final _scanButtonKey = GlobalKey();
 
   DateTime _occurredAt = DateTime.now();
   String? _payerMemberId;
@@ -74,6 +79,30 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     if (widget.initialScan) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scanReceipt();
+      });
+    } else {
+      _showScanCoachmark();
+    }
+  }
+
+  void _showScanCoachmark() {
+    // Disable coachmarks in tests to avoid blocking interaction in existing tests
+    if (kDebugMode && Platform.environment.containsKey('FLUTTER_TEST')) {
+      return;
+    }
+
+    final coachmarkService = ref.read(coachmarkServiceProvider);
+    if (coachmarkService.shouldShow(CoachmarkKey.receiptScanHint)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _scanButtonKey.currentContext == null) return;
+        CoachmarkOverlay.show(
+          context: context,
+          targetKey: _scanButtonKey,
+          message: context.l10n.receiptScanHint,
+          position: CoachmarkPosition.bottom,
+          onDismiss: () =>
+              coachmarkService.markShown(CoachmarkKey.receiptScanHint),
+        );
       });
     }
   }
@@ -520,6 +549,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         actions: [
           if (!_isLoading) ...[
             IconButton(
+              key: _scanButtonKey,
               onPressed: _scanReceipt,
               icon: const Icon(Icons.document_scanner),
               tooltip: context.l10n.scanReceipt,
