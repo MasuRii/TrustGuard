@@ -14,6 +14,7 @@ import 'tables/tags.dart';
 import 'tables/transaction_tags.dart';
 import 'tables/group_reminders.dart';
 import 'tables/recurring_transactions.dart';
+import 'tables/expense_templates.dart';
 
 import 'tables/attachments.dart';
 
@@ -32,13 +33,14 @@ part 'database.g.dart';
     Attachments,
     GroupReminders,
     RecurringTransactions,
+    ExpenseTemplates,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -73,6 +75,9 @@ class AppDatabase extends _$AppDatabase {
               'CREATE INDEX IF NOT EXISTS transactions_source_id ON transactions (source_id)',
             ),
           );
+        }
+        if (from < 7) {
+          await m.createTable(expenseTemplates);
         }
       },
       beforeOpen: (details) async {
