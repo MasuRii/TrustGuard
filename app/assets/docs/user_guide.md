@@ -24,6 +24,13 @@ Once a group is created, you need to add the people who will be sharing expenses
 3. Enter their name and tap the **Check** icon.
 *Tip: You don't need their phone numbers or emails; TrustGuard only needs a name to track their balance.*
 
+### Organizing Members and Tags
+You can customize the order in which members and tags appear in selectors.
+1. Go to the **Members** or **Tags** screen.
+2. Press and hold the **drag handle** (three horizontal lines) on any item.
+3. Drag the item to its new position.
+*This order is saved per group and reflected in all transaction forms.*
+
 ## 2. Recording Transactions
 There are two main types of transactions in TrustGuard: Expenses and Transfers.
 
@@ -44,16 +51,34 @@ Use transfers when one person gives money directly to another to settle a debt.
 2. Select who is sending the money and who is receiving it.
 3. Enter the amount and tap the **Check** icon.
 
+### Quick Actions with Speed Dial
+For faster data entry, use the **Speed Dial FAB** (Floating Action Button) on the transaction list screen.
+- **Expand:** Tap the `+` button to reveal quick actions.
+- **Quick Add:** Tap the **Flash** icon to open a compact expense sheet for rapid entry of equal splits.
+- **New Expense/Transfer:** Quickly start a full transaction from the dial.
+
 ### Managing Transactions
 - **Date Grouping:** Transactions are automatically grouped by date (Today, Yesterday, etc.) for better readability.
 - **Swipe Actions:** In the transaction list, swipe **right** on an item to edit it, or swipe **left** to delete it.
-- **Undo Deletion:** If you accidentally delete a transaction, you can immediately tap **Undo** on the notification at the bottom.
+- **Undo Accidental Deletions:** If you accidentally delete a transaction, you can immediately tap **Undo** on the notification at the bottom. You have a 5-second window to restore your data.
+
+### Smart Amount Suggestions
+TrustGuard learns from your habits to suggest common amounts.
+- When entering an expense or transfer, you'll see chips with suggested amounts.
+- These are based on your most **frequent** and **recent** transactions in that group.
+- Tap a chip to instantly fill the amount field.
 
 ## 3. Understanding Balances
 TrustGuard keeps track of exactly how much each person has paid and how much they owe.
 
 - **Positive Balance (Green):** This person is owed money because they have paid more than their share.
 - **Negative Balance (Red):** This person owes money to the group.
+
+### Balance Progress Visualization
+To help you grasp the relative magnitude of debts, the **Balances** screen and **Dashboard** feature bidirectional progress bars.
+- Zero is in the center.
+- Green bars grow right (credit), red bars grow left (debt).
+- All bars are scaled consistently against the largest balance in the group.
 
 ### Settlement Suggestions
 To make settling up easy, TrustGuard calculates the most efficient way to get everyone to a zero balance.
@@ -129,6 +154,14 @@ If you're moving from another app, you can bring your history with you.
 3. TrustGuard will automatically detect the format and show a preview.
 4. **Map Members:** Match the names found in the CSV to your TrustGuard group members (or create new ones).
 5. Tap **Import** to bring all transactions into your group.
+
+### Keyboard Shortcuts (Desktop)
+Power users on Windows, macOS, and Linux can use keyboard shortcuts for faster navigation:
+- **Ctrl/Cmd + N:** New Expense
+- **Ctrl/Cmd + T:** New Transfer
+- **Ctrl/Cmd + F:** Search/Filter transactions
+- **Ctrl/Cmd + S:** Save form
+- **Escape:** Cancel/Close current screen
 
 ---
 *Need more help? Check our GitHub repository for community support and updates.*

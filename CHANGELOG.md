@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-01-30
+
+### Added
+- **Speed Dial FAB**: New expandable Floating Action Button on the transaction list.
+  - **Quick Add**: Compact bottom sheet for rapid equal-split expense entry.
+  - Immediate access to New Expense and New Transfer.
+- **Visual Polish & Animations**:
+  - **Staggered List Animations**: Beautiful entrance animations for group and transaction lists.
+  - **Lottie Onboarding**: Animated illustrations for the first-launch experience.
+  - **Animated Icons**: Morphing archive/unarchive icons and bouncing filter badges.
+  - **Animated Empty States**: Engaging Lottie animations when lists are empty.
+  - **Smooth Transitions**: Refined page transitions (Fade Through and Shared Axis).
+- **Power User Features**:
+  - **Keyboard Shortcuts**: Comprehensive shortcuts for desktop (Ctrl/Cmd + N, T, F, S, Esc).
+  - **Drag-to-Reorder**: Persistent custom ordering for members and tags.
+  - **Haptic Sliders**: Tactile percentage-based custom split adjustments.
+- **Intelligent Guidance**:
+  - **Smart Amount Suggestions**: Usage-based suggestions in expense and transfer forms.
+  - **Feature Coachmarks**: Guided tooltips to help discover new features like swipe-to-edit.
+  - **Undo Safety**: 5-second undo window for transaction deletions with SnackBars.
+- **Data Visualization**:
+  - **Balance Progress Bars**: Bidirectional, color-coded bars for intuitive debt/credit tracking.
+  - Integrated bars into Dashboard and Balances screen for consistent scaling.
+- **Robustness**:
+  - Incremented database schema to version 5 with persistent ordering support.
+  - Added 40+ new tests for animations, reordering, shortcuts, and suggestions.
+  - Added full v1.4 feature integration test suite.
+
+### Changed
+- Improved `EmptyState` component with Lottie support and better accessibility.
+- Enhanced `AddExpenseScreen` with percentage-based split mode.
+- Optimized app startup sequence for background recurring transaction processing.
+
+### Fixed
+- Fixed a bug where staggered animations would not play on initial load in some screens.
+- Improved focus management when using keyboard shortcuts on list screens.
+
 ## [1.3.0] - 2026-01-28
 
 ### Added
