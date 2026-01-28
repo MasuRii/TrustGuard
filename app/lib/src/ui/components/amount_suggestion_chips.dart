@@ -56,21 +56,26 @@ class AmountSuggestionChips extends StatelessWidget {
 
             return Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: ActionChip(
-                label: Text(label),
-                onPressed: () {
-                  HapticsService.lightTap();
-                  onSelected(amount);
-                },
-                visualDensity: VisualDensity.compact,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                side: BorderSide.none,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                labelStyle: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+              child: Semantics(
+                button: true,
+                label: 'Suggest amount $label',
+                hint: 'Double tap to use this amount',
+                child: ActionChip(
+                  label: Text(label),
+                  onPressed: () {
+                    HapticsService.lightTap();
+                    onSelected(amount);
+                  },
+                  visualDensity: VisualDensity.compact,
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  side: BorderSide.none,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  labelStyle: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             );

@@ -30,74 +30,82 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool animate = !MediaQuery.of(context).disableAnimations;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.space32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (lottiePath != null)
-              Lottie.asset(
-                lottiePath!,
-                height: 160,
-                width: 160,
-                animate: animate,
-                repeat: !WidgetsBinding.instance.runtimeType
-                    .toString()
-                    .contains('TestWidgetsFlutterBinding'),
-                errorBuilder: (context, error, stackTrace) {
-                  if (svgPath != null) {
-                    return SvgPicture.asset(svgPath!, height: 160, width: 160);
-                  } else if (icon != null) {
-                    return Icon(
-                      icon,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
-                    );
-                  }
-                  return const SizedBox(height: 160, width: 160);
-                },
-              )
-            else if (svgPath != null)
-              SvgPicture.asset(
-                svgPath!,
-                height: 160,
-                width: 160,
-                placeholderBuilder: (context) => const SizedBox(
+    return Semantics(
+      container: true,
+      label: '$title. $message',
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.space32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (lottiePath != null)
+                Lottie.asset(
+                  lottiePath!,
                   height: 160,
                   width: 160,
-                  child: CircularProgressIndicator(),
+                  animate: animate,
+                  repeat: !WidgetsBinding.instance.runtimeType
+                      .toString()
+                      .contains('TestWidgetsFlutterBinding'),
+                  errorBuilder: (context, error, stackTrace) {
+                    if (svgPath != null) {
+                      return SvgPicture.asset(
+                        svgPath!,
+                        height: 160,
+                        width: 160,
+                      );
+                    } else if (icon != null) {
+                      return Icon(
+                        icon,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.outline,
+                      );
+                    }
+                    return const SizedBox(height: 160, width: 160);
+                  },
+                )
+              else if (svgPath != null)
+                SvgPicture.asset(
+                  svgPath!,
+                  height: 160,
+                  width: 160,
+                  placeholderBuilder: (context) => const SizedBox(
+                    height: 160,
+                    width: 160,
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else if (icon != null)
+                Icon(
+                  icon,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.outline,
                 ),
-              )
-            else if (icon != null)
-              Icon(
-                icon,
-                size: 64,
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            const SizedBox(height: AppTheme.space24),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.space8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (actionLabel != null && onActionPressed != null) ...[
               const SizedBox(height: AppTheme.space24),
-              FilledButton.icon(
-                onPressed: onActionPressed,
-                icon: const Icon(Icons.add),
-                label: Text(actionLabel!),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.headlineSmall,
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: AppTheme.space8),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              if (actionLabel != null && onActionPressed != null) ...[
+                const SizedBox(height: AppTheme.space24),
+                FilledButton.icon(
+                  onPressed: onActionPressed,
+                  icon: const Icon(Icons.add),
+                  label: Text(actionLabel!),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

@@ -78,6 +78,9 @@ class MemberAvatarSelector extends StatelessWidget {
                 label: member.displayName,
                 selected: isSelected,
                 button: true,
+                hint: isSelected
+                    ? 'Double tap to deselect'
+                    : 'Double tap to select',
                 child: Tooltip(
                   message: member.displayName,
                   child: GestureDetector(

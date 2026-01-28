@@ -279,20 +279,25 @@ class _SpeedDialFabState extends State<SpeedDialFab>
             scale: useReducedMotion
                 ? const AlwaysStoppedAnimation(1.0)
                 : animation,
-            child: FloatingActionButton.small(
-              heroTag: 'speed_dial_item_$index',
-              onPressed: () {
-                _toggle();
-                item.onPressed();
-              },
-              backgroundColor:
-                  item.backgroundColor ??
-                  Theme.of(context).colorScheme.secondaryContainer,
-              foregroundColor:
-                  item.foregroundColor ??
-                  Theme.of(context).colorScheme.onSecondaryContainer,
-              tooltip: item.label,
-              child: Icon(item.icon),
+            child: Semantics(
+              label: item.label,
+              button: true,
+              enabled: true,
+              child: FloatingActionButton.small(
+                heroTag: 'speed_dial_item_$index',
+                onPressed: () {
+                  _toggle();
+                  item.onPressed();
+                },
+                backgroundColor:
+                    item.backgroundColor ??
+                    Theme.of(context).colorScheme.secondaryContainer,
+                foregroundColor:
+                    item.foregroundColor ??
+                    Theme.of(context).colorScheme.onSecondaryContainer,
+                tooltip: item.label,
+                child: Icon(item.icon),
+              ),
             ),
           ),
         ],
