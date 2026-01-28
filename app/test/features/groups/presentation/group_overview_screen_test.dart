@@ -84,4 +84,52 @@ void main() {
     await db.close();
     await tester.pump(Duration.zero);
   });
+
+  testWidgets('GroupOverviewScreen switches to Budgets tab', (
+    WidgetTester tester,
+  ) async {
+    final groupId = const Uuid().v4();
+    final group = model.Group(
+      id: groupId,
+      name: 'Test Group',
+      currencyCode: 'USD',
+      createdAt: DateTime.now(),
+    );
+
+    await db
+        .into(db.groups)
+        .insert(
+          GroupsCompanion.insert(
+            id: group.id,
+            name: group.name,
+            currencyCode: group.currencyCode,
+            createdAt: group.createdAt,
+          ),
+        );
+
+    final prefsOverrides = await getSharedPrefsOverride();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
+        child: wrapWithLocalization(GroupOverviewScreen(groupId: groupId)),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify Overview tab is active by default
+    expect(find.text('Quick Actions'), findsOneWidget);
+
+    // Switch to Budgets tab
+    await tester.tap(find.text('Budgets'));
+    await tester.pumpAndSettle();
+
+    // Verify Budgets tab content (empty state)
+    expect(find.text('No active budgets'), findsOneWidget);
+    expect(find.text('Create Budget'), findsNWidgets(2));
+
+    await db.close();
+    await tester.pump(Duration.zero);
+  });
 }

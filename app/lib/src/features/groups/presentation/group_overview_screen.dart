@@ -3,21 +3,61 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../app/providers.dart';
+import '../../../core/models/group.dart';
 import '../../../core/models/reminder_settings.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/speed_dial_fab.dart';
 import '../../templates/presentation/template_picker_sheet.dart';
 import '../../transactions/presentation/quick_add_expense_sheet.dart';
+import '../../budget/presentation/budget_list_tab.dart';
 import 'groups_providers.dart';
 
-class GroupOverviewScreen extends ConsumerWidget {
+class GroupOverviewScreen extends ConsumerStatefulWidget {
   final String groupId;
 
   const GroupOverviewScreen({super.key, required this.groupId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final groupAsync = ref.watch(groupStreamProvider(groupId));
+  ConsumerState<GroupOverviewScreen> createState() =>
+      _GroupOverviewScreenState();
+}
+
+class _GroupOverviewScreenState extends ConsumerState<GroupOverviewScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _showQuickAdd(BuildContext context, Group group) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => QuickAddExpenseSheet(
+        groupId: group.id,
+        onSuccess: () {
+          // Providers will refresh automatically due to StreamProvider
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final groupAsync = ref.watch(groupStreamProvider(widget.groupId));
 
     return groupAsync.when(
       data: (group) {
@@ -26,20 +66,6 @@ class GroupOverviewScreen extends ConsumerWidget {
         }
 
         final l10n = AppLocalizations.of(context)!;
-
-        void showQuickAdd() {
-          showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-            useSafeArea: true,
-            builder: (context) => QuickAddExpenseSheet(
-              groupId: group.id,
-              onSuccess: () {
-                // Providers will refresh automatically due to StreamProvider
-              },
-            ),
-          );
-        }
 
         return Scaffold(
           appBar: AppBar(
@@ -64,94 +90,22 @@ class GroupOverviewScreen extends ConsumerWidget {
                 ),
               ),
             ],
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.space16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSummaryCard(context, group),
-                const SizedBox(height: AppTheme.space24),
-                _buildSectionHeader(
-                  context,
-                  title: 'Members',
-                  actionLabel: 'Manage',
-                  onActionPressed: () =>
-                      context.push('/group/${group.id}/members'),
-                ),
-                const SizedBox(height: AppTheme.space8),
-                _buildMembersPlaceholder(context),
-                const SizedBox(height: AppTheme.space24),
-                _buildSectionHeader(
-                  context,
-                  title: 'Reminders',
-                  actionLabel: 'Settings',
-                  onActionPressed: () =>
-                      context.push('/group/${group.id}/reminders'),
-                ),
-                const SizedBox(height: AppTheme.space8),
-                _buildReminderStatus(context, ref),
-                const SizedBox(height: AppTheme.space24),
-                _buildSectionHeader(context, title: 'Quick Actions'),
-                const SizedBox(height: AppTheme.space16),
-                _buildQuickActions(context, group),
+            bottom: TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Overview'),
+                Tab(text: 'Budgets'),
               ],
             ),
           ),
-          floatingActionButton: SpeedDialFab(
-            items: [
-              SpeedDialItem(
-                icon: Icons.bolt,
-                label: l10n.quickAdd,
-                onPressed: showQuickAdd,
-              ),
-              SpeedDialItem(
-                icon: Icons.file_copy_outlined,
-                label: 'From Template',
-                onPressed: () {
-                  showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    builder: (context) => TemplatePickerSheet(
-                      groupId: group.id,
-                      onSelected: (template) {
-                        context.push(
-                          '/group/${group.id}/transactions/add-expense',
-                          extra: template,
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-              SpeedDialItem(
-                icon: Icons.receipt_long_outlined,
-                label: l10n.addExpense,
-                onPressed: () =>
-                    context.push('/group/${group.id}/transactions/add-expense'),
-              ),
-              SpeedDialItem(
-                icon: Icons.swap_horiz,
-                label: l10n.addTransfer,
-                onPressed: () => context.push(
-                  '/group/${group.id}/transactions/add-transfer',
-                ),
-              ),
-              SpeedDialItem(
-                icon: Icons.qr_code_scanner,
-                label: 'Scan QR Code',
-                onPressed: () => context.push('/group/${group.id}/scan'),
-              ),
-              SpeedDialItem(
-                icon: Icons.document_scanner_outlined,
-                label: l10n.scanReceipt,
-                onPressed: () => context.push(
-                  '/group/${group.id}/transactions/add-expense?scan=true',
-                ),
-              ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _OverviewTab(group: group),
+              BudgetListTab(groupId: group.id),
             ],
           ),
+          floatingActionButton: _buildFab(context, group, l10n),
         );
       },
       loading: () =>
@@ -161,7 +115,112 @@ class GroupOverviewScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryCard(BuildContext context, dynamic group) {
+  Widget _buildFab(BuildContext context, Group group, AppLocalizations l10n) {
+    if (_tabController.index == 1) {
+      return FloatingActionButton.extended(
+        onPressed: () => context.push('/group/${group.id}/budget-settings'),
+        icon: const Icon(Icons.add),
+        label: const Text('Create Budget'),
+      );
+    }
+
+    return SpeedDialFab(
+      items: [
+        SpeedDialItem(
+          icon: Icons.bolt,
+          label: l10n.quickAdd,
+          onPressed: () => _showQuickAdd(context, group),
+        ),
+        SpeedDialItem(
+          icon: Icons.file_copy_outlined,
+          label: 'From Template',
+          onPressed: () {
+            showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              useSafeArea: true,
+              builder: (context) => TemplatePickerSheet(
+                groupId: group.id,
+                onSelected: (template) {
+                  context.push(
+                    '/group/${group.id}/transactions/add-expense',
+                    extra: template,
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        SpeedDialItem(
+          icon: Icons.receipt_long_outlined,
+          label: l10n.addExpense,
+          onPressed: () =>
+              context.push('/group/${group.id}/transactions/add-expense'),
+        ),
+        SpeedDialItem(
+          icon: Icons.swap_horiz,
+          label: l10n.addTransfer,
+          onPressed: () =>
+              context.push('/group/${group.id}/transactions/add-transfer'),
+        ),
+        SpeedDialItem(
+          icon: Icons.qr_code_scanner,
+          label: 'Scan QR Code',
+          onPressed: () => context.push('/group/${group.id}/scan'),
+        ),
+        SpeedDialItem(
+          icon: Icons.document_scanner_outlined,
+          label: l10n.scanReceipt,
+          onPressed: () => context.push(
+            '/group/${group.id}/transactions/add-expense?scan=true',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OverviewTab extends ConsumerWidget {
+  final Group group;
+
+  const _OverviewTab({required this.group});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppTheme.space16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSummaryCard(context, group),
+          const SizedBox(height: AppTheme.space24),
+          _buildSectionHeader(
+            context,
+            title: 'Members',
+            actionLabel: 'Manage',
+            onActionPressed: () => context.push('/group/${group.id}/members'),
+          ),
+          const SizedBox(height: AppTheme.space8),
+          _buildMembersPlaceholder(context),
+          const SizedBox(height: AppTheme.space24),
+          _buildSectionHeader(
+            context,
+            title: 'Reminders',
+            actionLabel: 'Settings',
+            onActionPressed: () => context.push('/group/${group.id}/reminders'),
+          ),
+          const SizedBox(height: AppTheme.space8),
+          _buildReminderStatus(context, ref),
+          const SizedBox(height: AppTheme.space24),
+          _buildSectionHeader(context, title: 'Quick Actions'),
+          const SizedBox(height: AppTheme.space16),
+          _buildQuickActions(context, group),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(BuildContext context, Group group) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.space16),
@@ -241,7 +300,7 @@ class GroupOverviewScreen extends ConsumerWidget {
             const SizedBox(height: AppTheme.space8),
             const Text('Member balances will appear here'),
             TextButton(
-              onPressed: () => context.push('/group/$groupId/members'),
+              onPressed: () => context.push('/group/${group.id}/members'),
               child: const Text('Add Members'),
             ),
           ],
@@ -251,7 +310,7 @@ class GroupOverviewScreen extends ConsumerWidget {
   }
 
   Widget _buildReminderStatus(BuildContext context, WidgetRef ref) {
-    final settingsAsync = ref.watch(reminderSettingsProvider(groupId));
+    final settingsAsync = ref.watch(reminderSettingsProvider(group.id));
 
     return settingsAsync.when(
       data: (settings) {
@@ -280,7 +339,7 @@ class GroupOverviewScreen extends ConsumerWidget {
                   )
                 : const Text('Turn on to receive notifications'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/group/$groupId/reminders'),
+            onTap: () => context.push('/group/${group.id}/reminders'),
           ),
         );
       },
@@ -289,7 +348,7 @@ class GroupOverviewScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context, dynamic group) {
+  Widget _buildQuickActions(BuildContext context, Group group) {
     final l10n = AppLocalizations.of(context)!;
 
     return GridView.count(
