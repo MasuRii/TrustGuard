@@ -10,6 +10,7 @@ import '../features/groups/presentation/group_form_screen.dart';
 import '../features/groups/presentation/group_overview_screen.dart';
 import '../features/groups/presentation/home_screen.dart';
 import '../features/groups/presentation/members_screen.dart';
+import '../features/sharing/presentation/scan_expense_screen.dart';
 import '../features/transactions/presentation/add_expense_screen.dart';
 import '../features/transactions/presentation/add_transfer_screen.dart';
 import '../features/transactions/presentation/tags_screen.dart';
@@ -148,6 +149,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                   return ImportScreen(groupId: id);
                 },
               ).withTransition(TransitionType.sharedAxisHorizontal),
+              GoRoute(
+                path: 'scan',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return ScanExpenseScreen(groupId: id);
+                },
+              ).withTransition(TransitionType.fadeThrough),
               GoRoute(
                 path: 'transactions',
                 builder: (context, state) {
