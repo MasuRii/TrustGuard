@@ -113,6 +113,35 @@ class NotificationService {
     );
   }
 
+  /// Shows an immediate notification.
+  Future<void> showImmediateNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      'budget_alerts',
+      'Budget Alerts',
+      channelDescription: 'Notifications when budget thresholds are exceeded',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const iosDetails = DarwinNotificationDetails();
+    const platformDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: platformDetails,
+      payload: payload,
+    );
+  }
+
   /// Cancels a reminder notification for a group.
   Future<void> cancelReminder(String groupId) async {
     await _notifications.cancel(id: groupId.hashCode.abs());

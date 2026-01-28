@@ -14,8 +14,13 @@ import 'groups_providers.dart';
 
 class GroupOverviewScreen extends ConsumerStatefulWidget {
   final String groupId;
+  final int initialTabIndex;
 
-  const GroupOverviewScreen({super.key, required this.groupId});
+  const GroupOverviewScreen({
+    super.key,
+    required this.groupId,
+    this.initialTabIndex = 0,
+  });
 
   @override
   ConsumerState<GroupOverviewScreen> createState() =>
@@ -29,7 +34,11 @@ class _GroupOverviewScreenState extends ConsumerState<GroupOverviewScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
     _tabController.addListener(() {
       setState(() {});
     });

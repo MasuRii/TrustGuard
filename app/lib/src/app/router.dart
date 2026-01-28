@@ -87,7 +87,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'group/:id',
             builder: (context, state) {
               final id = state.pathParameters['id']!;
-              return GroupOverviewScreen(groupId: id);
+              final tab = state.uri.queryParameters['tab'];
+              final initialTabIndex = tab == 'budgets' ? 1 : 0;
+              return GroupOverviewScreen(
+                groupId: id,
+                initialTabIndex: initialTabIndex,
+              );
             },
             routes: [
               GoRoute(

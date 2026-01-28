@@ -29,6 +29,7 @@ import '../../../ui/components/haptic_slider.dart';
 import '../../ocr/models/receipt_data.dart';
 import '../../ocr/providers/ocr_providers.dart';
 import '../../templates/presentation/save_as_template_sheet.dart';
+import '../../budget/services/budget_alert_service.dart';
 import '../models/expense_form_data.dart';
 import 'widgets/split_preview_bar.dart';
 import '../../groups/presentation/groups_providers.dart';
@@ -455,6 +456,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       } else {
         await repository.updateTransaction(transaction);
       }
+
+      // Check for budget alerts
+      await ref
+          .read(budgetAlertServiceProvider)
+          .checkGroupBudgets(widget.groupId);
 
       HapticsService.success();
 

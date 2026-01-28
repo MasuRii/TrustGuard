@@ -13,12 +13,21 @@ abstract class BudgetRepository {
   Future<void> updateBudget(model.Budget budget);
   Future<void> deleteBudget(String id);
   Future<void> toggleActive(String id, bool isActive);
+  Future<List<model.Budget>> getAllActiveBudgets();
 }
 
 class DriftBudgetRepository implements BudgetRepository {
   final AppDatabase _db;
 
   DriftBudgetRepository(this._db);
+
+  @override
+  Future<List<model.Budget>> getAllActiveBudgets() async {
+    final query = _db.select(_db.budgets)
+      ..where((t) => t.isActive.equals(true));
+    final rows = await query.get();
+    return rows.map((row) => row.toModel()).toList();
+  }
 
   @override
   Future<List<model.Budget>> getBudgetsByGroup(String groupId) async {
