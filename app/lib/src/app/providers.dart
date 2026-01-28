@@ -12,6 +12,7 @@ import '../core/database/repositories/reminder_repository.dart';
 import '../core/database/repositories/attachment_repository.dart';
 import '../core/database/repositories/recurring_transaction_repository.dart';
 import '../core/database/repositories/template_repository.dart';
+import '../core/database/repositories/budget_repository.dart';
 import '../core/platform/app_lock_service.dart';
 import '../core/platform/notification_service.dart';
 import '../core/platform/local_log_service.dart';
@@ -19,6 +20,7 @@ import '../core/models/tag_with_usage.dart';
 import '../core/models/reminder_settings.dart';
 import '../core/models/tag.dart' as model;
 import '../core/models/expense_template.dart';
+import '../core/models/budget.dart';
 import '../core/utils/money.dart';
 import '../features/export_backup/services/export_service.dart';
 import '../features/export_backup/services/backup_service.dart';
@@ -294,4 +296,28 @@ final amountSuggestionServiceProvider = Provider<AmountSuggestionService>((
 ) {
   final transactionRepo = ref.watch(transactionRepositoryProvider);
   return AmountSuggestionService(transactionRepo);
+});
+
+/// Provider for [BudgetRepository].
+final budgetRepositoryProvider = Provider<BudgetRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftBudgetRepository(db);
+});
+
+/// Provider for watching budgets in a group.
+final budgetsProvider = StreamProvider.family<List<Budget>, String>((
+  ref,
+  groupId,
+) {
+  final repo = ref.watch(budgetRepositoryProvider);
+  return repo.watchBudgetsByGroup(groupId);
+});
+
+/// Provider for watching active budgets in a group.
+final activeBudgetsProvider = StreamProvider.family<List<Budget>, String>((
+  ref,
+  groupId,
+) {
+  final repo = ref.watch(budgetRepositoryProvider);
+  return repo.watchActiveBudgets(groupId);
 });
