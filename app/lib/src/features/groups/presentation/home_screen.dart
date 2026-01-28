@@ -45,13 +45,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       return;
     }
 
-    _staggeredController?.dispose();
-    _staggeredController = StaggeredListAnimationController(
-      vsync: this,
-      itemCount: count,
-    );
-    _lastItemCount = count;
-    _staggeredController!.startAnimation();
+    if (mounted) {
+      setState(() {
+        _staggeredController?.dispose();
+        _staggeredController = StaggeredListAnimationController(
+          vsync: this,
+          itemCount: count,
+        );
+        _lastItemCount = count;
+      });
+      _staggeredController!.startAnimation();
+    }
   }
 
   Future<void> _onRefresh() async {

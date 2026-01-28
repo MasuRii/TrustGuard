@@ -73,25 +73,37 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
   void _handleData(PaginatedTransactionsState paginatedState) {
     final transactions = paginatedState.transactions;
     if (transactions.isEmpty) {
-      _lastAnimatedIndex = -1;
-      _animationController?.dispose();
-      _animationController = null;
+      if (mounted) {
+        setState(() {
+          _lastAnimatedIndex = -1;
+          _animationController?.dispose();
+          _animationController = null;
+        });
+      }
       return;
     }
 
     // Detect fresh load: either no controller yet, or list got shorter (e.g. filter change)
     if (_animationController == null ||
         transactions.length < (_lastAnimatedIndex + 1)) {
-      _animationController?.dispose();
-      _animationController = StaggeredListAnimationController(
-        vsync: this,
-        itemCount: transactions.length,
-      );
-      _animationController!.startAnimation();
-      _lastAnimatedIndex = transactions.length - 1;
+      if (mounted) {
+        setState(() {
+          _animationController?.dispose();
+          _animationController = StaggeredListAnimationController(
+            vsync: this,
+            itemCount: transactions.length,
+          );
+          _lastAnimatedIndex = transactions.length - 1;
+        });
+        _animationController!.startAnimation();
+      }
     } else if (transactions.length > (_lastAnimatedIndex + 1)) {
       // Pagination load: update index but don't restart stagger
-      _lastAnimatedIndex = transactions.length - 1;
+      if (mounted) {
+        setState(() {
+          _lastAnimatedIndex = transactions.length - 1;
+        });
+      }
     }
 
     _showSwipeCoachmark();
