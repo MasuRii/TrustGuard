@@ -9,6 +9,9 @@ class AppTheme {
   static const double space24 = 24.0;
   static const double space32 = 32.0;
 
+  // Accessibility
+  static const double minTouchTarget = 48.0;
+
   // Colors
   static const Color _seedColor = Color(0xFF6750A4); // Indigo/Purple seed
 

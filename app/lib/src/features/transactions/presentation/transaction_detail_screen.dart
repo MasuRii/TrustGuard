@@ -55,6 +55,10 @@ class TransactionDetailScreen extends ConsumerWidget {
                         );
                       }
                     },
+                    constraints: const BoxConstraints(
+                      minWidth: AppTheme.minTouchTarget,
+                      minHeight: AppTheme.minTouchTarget,
+                    ),
                   )
                 : const SizedBox.shrink(),
             loading: () => const SizedBox.shrink(),
@@ -63,6 +67,10 @@ class TransactionDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: () => _confirmDelete(context, ref),
+            constraints: const BoxConstraints(
+              minWidth: AppTheme.minTouchTarget,
+              minHeight: AppTheme.minTouchTarget,
+            ),
           ),
         ],
       ),
@@ -302,10 +310,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           spacing: 8,
           runSpacing: 8,
           children: tx.tags.map((tag) {
-            return Chip(
-              label: Text(tag.name),
-              visualDensity: VisualDensity.compact,
-            );
+            return Chip(label: Text(tag.name));
           }).toList(),
         ),
       ],
@@ -329,6 +334,10 @@ class TransactionDetailScreen extends ConsumerWidget {
               icon: const Icon(Icons.add_a_photo_outlined),
               onPressed: () => _addAttachment(context, ref, txId),
               tooltip: 'Add Photo',
+              constraints: const BoxConstraints(
+                minWidth: AppTheme.minTouchTarget,
+                minHeight: AppTheme.minTouchTarget,
+              ),
             ),
           ],
         ),
@@ -579,6 +588,10 @@ class _AttachmentThumbnail extends StatelessWidget {
             leading: IconButton(
               icon: const Icon(Icons.close),
               onPressed: () => Navigator.pop(context),
+              constraints: const BoxConstraints(
+                minWidth: AppTheme.minTouchTarget,
+                minHeight: AppTheme.minTouchTarget,
+              ),
             ),
           ),
           backgroundColor: Colors.black,

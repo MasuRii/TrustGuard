@@ -241,6 +241,10 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
               onPressed: _pickFile,
               icon: const Icon(Icons.edit, size: 20),
               tooltip: 'Change File',
+              constraints: const BoxConstraints(
+                minWidth: AppTheme.minTouchTarget,
+                minHeight: AppTheme.minTouchTarget,
+              ),
             ),
           ],
         ),

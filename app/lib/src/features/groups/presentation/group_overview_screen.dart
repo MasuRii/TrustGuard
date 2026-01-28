@@ -48,6 +48,10 @@ class GroupOverviewScreen extends ConsumerWidget {
                 icon: const Icon(Icons.edit_outlined),
                 onPressed: () => context.push('/group/${group.id}/edit'),
                 tooltip: 'Edit Group',
+                constraints: const BoxConstraints(
+                  minWidth: AppTheme.minTouchTarget,
+                  minHeight: AppTheme.minTouchTarget,
+                ),
               ),
             ],
           ),

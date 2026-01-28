@@ -110,6 +110,10 @@ class _GroupFormScreenState extends ConsumerState<GroupFormScreen> {
               onPressed: _save,
               icon: const Icon(Icons.check),
               tooltip: 'Save',
+              constraints: const BoxConstraints(
+                minWidth: AppTheme.minTouchTarget,
+                minHeight: AppTheme.minTouchTarget,
+              ),
             ),
         ],
       ),

@@ -66,7 +66,6 @@ class AmountSuggestionChips extends StatelessWidget {
                     HapticsService.lightTap();
                     onSelected(amount);
                   },
-                  visualDensity: VisualDensity.compact,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
                   side: BorderSide.none,
                   shape: RoundedRectangleBorder(

@@ -202,6 +202,10 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
                 );
               },
               tooltip: context.l10n.filterTransactions,
+              constraints: const BoxConstraints(
+                minWidth: AppTheme.minTouchTarget,
+                minHeight: AppTheme.minTouchTarget,
+              ),
             ),
           ],
         ),
@@ -231,6 +235,10 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
                               );
                             },
                             tooltip: context.l10n.clearSearch,
+                            constraints: const BoxConstraints(
+                              minWidth: AppTheme.minTouchTarget,
+                              minHeight: AppTheme.minTouchTarget,
+                            ),
                           )
                         : null,
                     border: OutlineInputBorder(

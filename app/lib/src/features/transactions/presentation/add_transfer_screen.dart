@@ -261,6 +261,10 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
                   onPressed: () => setState(() => _endDate = null),
                   icon: const Icon(Icons.clear),
                   tooltip: context.l10n.repeatForever,
+                  constraints: const BoxConstraints(
+                    minWidth: AppTheme.minTouchTarget,
+                    minHeight: AppTheme.minTouchTarget,
+                  ),
                 ),
             ],
           ),
@@ -420,6 +424,10 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
                   onPressed: _save,
                   icon: const Icon(Icons.check),
                   tooltip: 'Save',
+                  constraints: const BoxConstraints(
+                    minWidth: AppTheme.minTouchTarget,
+                    minHeight: AppTheme.minTouchTarget,
+                  ),
                 ),
               ),
           ],

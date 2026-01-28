@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/app.dart';
+import '../../../ui/theme/app_theme.dart';
 import '../providers/lock_providers.dart';
 import '../providers/notification_providers.dart';
 import '../providers/theme_providers.dart';
@@ -195,6 +196,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onPressed: () =>
                   _showClearOrphanedAttachmentsDialog(context, ref),
               tooltip: context.l10n.clearOrphaned,
+              constraints: const BoxConstraints(
+                minWidth: AppTheme.minTouchTarget,
+                minHeight: AppTheme.minTouchTarget,
+              ),
             ),
           ),
           ListTile(

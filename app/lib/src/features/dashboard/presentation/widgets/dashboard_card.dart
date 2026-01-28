@@ -71,7 +71,10 @@ class _DashboardCardContent extends ConsumerWidget {
                   icon: const Icon(Icons.refresh, size: 20),
                   onPressed: () => ref.refresh(globalBalanceSummaryProvider),
                   tooltip: l10n.retry,
-                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                    minWidth: AppTheme.minTouchTarget,
+                    minHeight: AppTheme.minTouchTarget,
+                  ),
                 ),
               ],
             ),

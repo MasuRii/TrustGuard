@@ -216,6 +216,10 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               _localMembers = null;
             },
             tooltip: showRemoved ? 'Hide removed' : 'Show removed',
+            constraints: const BoxConstraints(
+              minWidth: AppTheme.minTouchTarget,
+              minHeight: AppTheme.minTouchTarget,
+            ),
           ),
         ],
       ),
@@ -249,10 +253,18 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                     IconButton(
                       icon: const Icon(Icons.check),
                       onPressed: _addMember,
+                      constraints: const BoxConstraints(
+                        minWidth: AppTheme.minTouchTarget,
+                        minHeight: AppTheme.minTouchTarget,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () => setState(() => _isAdding = false),
+                      constraints: const BoxConstraints(
+                        minWidth: AppTheme.minTouchTarget,
+                        minHeight: AppTheme.minTouchTarget,
+                      ),
                     ),
                   ],
                 ),
@@ -361,12 +373,20 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               icon: const Icon(Icons.restore),
               onPressed: () => _restoreMember(member),
               tooltip: 'Restore',
+              constraints: const BoxConstraints(
+                minWidth: AppTheme.minTouchTarget,
+                minHeight: AppTheme.minTouchTarget,
+              ),
             )
           else
             IconButton(
               icon: const Icon(Icons.person_remove_outlined),
               onPressed: () => _removeMember(member),
               tooltip: 'Remove',
+              constraints: const BoxConstraints(
+                minWidth: AppTheme.minTouchTarget,
+                minHeight: AppTheme.minTouchTarget,
+              ),
             ),
           if (canReorder)
             ReorderableDragStartListener(

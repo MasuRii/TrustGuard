@@ -218,7 +218,6 @@ class _AmountInputFieldState extends State<AmountInputField> {
                     child: ActionChip(
                       label: Text('+$amount'),
                       onPressed: () => _addAmount(amount),
-                      visualDensity: VisualDensity.compact,
                       backgroundColor:
                           theme.colorScheme.surfaceContainerHighest,
                       side: BorderSide.none,

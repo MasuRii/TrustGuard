@@ -185,11 +185,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             tooltip: showArchived
                 ? context.l10n.hideArchived
                 : context.l10n.showArchived,
+            constraints: const BoxConstraints(
+              minWidth: AppTheme.minTouchTarget,
+              minHeight: AppTheme.minTouchTarget,
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => context.push('/settings'),
             tooltip: context.l10n.settingsTitle,
+            constraints: const BoxConstraints(
+              minWidth: AppTheme.minTouchTarget,
+              minHeight: AppTheme.minTouchTarget,
+            ),
           ),
         ],
       ),
@@ -336,7 +344,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                           ),
                                           title: Text(context.l10n.edit),
                                           contentPadding: EdgeInsets.zero,
-                                          visualDensity: VisualDensity.compact,
                                         ),
                                       ),
                                       if (!isArchived)
@@ -348,8 +355,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                             ),
                                             title: Text(context.l10n.archive),
                                             contentPadding: EdgeInsets.zero,
-                                            visualDensity:
-                                                VisualDensity.compact,
                                           ),
                                         )
                                       else
@@ -361,8 +366,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                             ),
                                             title: Text(context.l10n.unarchive),
                                             contentPadding: EdgeInsets.zero,
-                                            visualDensity:
-                                                VisualDensity.compact,
                                           ),
                                         ),
                                     ],

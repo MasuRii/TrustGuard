@@ -5,6 +5,7 @@ import '../../../app/providers.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/tag_with_usage.dart';
 import '../../../ui/components/empty_state.dart';
+import '../../../ui/theme/app_theme.dart';
 import '../../../core/utils/haptics.dart';
 
 class TagsScreen extends ConsumerStatefulWidget {
@@ -128,10 +129,18 @@ class _TagsScreenState extends ConsumerState<TagsScreen> {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => _showTagDialog(context, existingTag: item.tag),
+            constraints: const BoxConstraints(
+              minWidth: AppTheme.minTouchTarget,
+              minHeight: AppTheme.minTouchTarget,
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.red),
             onPressed: () => _confirmDelete(context, item.tag),
+            constraints: const BoxConstraints(
+              minWidth: AppTheme.minTouchTarget,
+              minHeight: AppTheme.minTouchTarget,
+            ),
           ),
           if (canReorder)
             ReorderableDragStartListener(

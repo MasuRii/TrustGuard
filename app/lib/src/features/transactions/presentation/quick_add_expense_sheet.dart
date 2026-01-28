@@ -162,6 +162,10 @@ class _QuickAddExpenseSheetState extends ConsumerState<QuickAddExpenseSheet> {
                       IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.close),
+                        constraints: const BoxConstraints(
+                          minWidth: AppTheme.minTouchTarget,
+                          minHeight: AppTheme.minTouchTarget,
+                        ),
                       ),
                     ],
                   ),

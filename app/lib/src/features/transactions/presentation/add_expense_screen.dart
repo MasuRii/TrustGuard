@@ -1292,6 +1292,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   onPressed: () => setState(() => _endDate = null),
                   icon: const Icon(Icons.clear),
                   tooltip: context.l10n.repeatForever,
+                  constraints: const BoxConstraints(
+                    minWidth: AppTheme.minTouchTarget,
+                    minHeight: AppTheme.minTouchTarget,
+                  ),
                 ),
             ],
           ),

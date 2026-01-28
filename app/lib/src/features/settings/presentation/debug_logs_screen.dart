@@ -36,11 +36,19 @@ class DebugLogsScreen extends ConsumerWidget {
               }
             },
             tooltip: 'Export Logs',
+            constraints: const BoxConstraints(
+              minWidth: AppTheme.minTouchTarget,
+              minHeight: AppTheme.minTouchTarget,
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: () => _showClearLogsDialog(context, ref),
             tooltip: 'Clear Logs',
+            constraints: const BoxConstraints(
+              minWidth: AppTheme.minTouchTarget,
+              minHeight: AppTheme.minTouchTarget,
+            ),
           ),
         ],
       ),
