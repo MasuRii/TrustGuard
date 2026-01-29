@@ -18,13 +18,15 @@ void main() {
     mockDashboardService = MockDashboardService();
     service = WidgetDataService(dashboardService: mockDashboardService);
 
+    // Use the correct channel name for home_widget package
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(const MethodChannel('home_widget'), (
-          MethodCall methodCall,
-        ) async {
-          log.add(methodCall);
-          return null;
-        });
+        .setMockMethodCallHandler(
+          const MethodChannel('es.antonborri.home_widget'),
+          (MethodCall methodCall) async {
+            log.add(methodCall);
+            return null;
+          },
+        );
     log.clear();
   });
 
