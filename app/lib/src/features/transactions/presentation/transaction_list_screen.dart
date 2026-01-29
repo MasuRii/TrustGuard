@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:animations/animations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +13,7 @@ import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/models/transaction_filter.dart';
 import '../../../core/utils/haptics.dart';
+import '../../../core/utils/platform_utils.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/animations/lottie_assets.dart';
 import '../../../ui/theme/app_theme.dart';
@@ -112,7 +112,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
 
   void _showSwipeCoachmark() {
     // Disable coachmarks in tests to avoid blocking interaction in existing tests
-    if (kDebugMode && Platform.environment.containsKey('FLUTTER_TEST')) {
+    if (kDebugMode && PlatformUtils.isTestEnvironment) {
       return;
     }
 

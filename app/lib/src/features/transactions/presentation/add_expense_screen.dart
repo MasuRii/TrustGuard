@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +17,7 @@ import '../../../core/services/coachmark_service.dart';
 import '../../../core/models/expense_template.dart' as template_model;
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/utils/platform_utils.dart';
 import '../../../core/utils/validators.dart';
 import '../../../ui/animations/shake_widget.dart';
 import '../../../ui/components/member_avatar.dart';
@@ -100,7 +100,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
   void _showScanCoachmark() {
     // Disable coachmarks in tests to avoid blocking interaction in existing tests
-    if (kDebugMode && Platform.environment.containsKey('FLUTTER_TEST')) {
+    if (kDebugMode && PlatformUtils.isTestEnvironment) {
       return;
     }
 
