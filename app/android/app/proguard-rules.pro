@@ -17,6 +17,12 @@
 -keep class com.google.mlkit.** { *; }
 -keep class com.google.android.gms.** { *; }
 
+# Google Play Core - Optional deferred components / split APK support
+# Flutter embedding references these for dynamic delivery, but they're optional
+-dontwarn com.google.android.play.core.splitcompat.**
+-dontwarn com.google.android.play.core.splitinstall.**
+-dontwarn com.google.android.play.core.tasks.**
+
 # Keep classes for reflection
 -keepattributes *Annotation*
 -keepattributes Signature
