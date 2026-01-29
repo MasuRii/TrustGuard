@@ -12,7 +12,8 @@ void main() {
       displayName: 'Member 1',
       createdAt: now,
       removedAt: null,
-      avatarUrl: 'https://example.com/avatar.png',
+      avatarPath: 'path/to/avatar.jpg',
+      avatarColor: 0xFFF44336,
       orderIndex: 0,
     );
 
@@ -22,13 +23,16 @@ void main() {
       displayName: 'Member 1',
       createdAt: now,
       removedAt: null,
-      avatarUrl: 'https://example.com/avatar.png',
+      avatarPath: 'path/to/avatar.jpg',
+      avatarColor: 0xFFF44336,
       orderIndex: 0,
     );
 
     test('toModel should convert MemberData to Member model', () {
       final result = MemberMapper.toModel(memberData);
-      expect(result, equals(memberModel));
+      expect(result.id, equals(memberModel.id));
+      expect(result.avatarPath, equals(memberModel.avatarPath));
+      expect(result.avatarColor, equals(memberModel.avatarColor));
     });
 
     test('toCompanion should convert Member model to MembersCompanion', () {
@@ -38,7 +42,8 @@ void main() {
       expect(result.displayName.value, equals(memberModel.displayName));
       expect(result.createdAt.value, equals(memberModel.createdAt));
       expect(result.removedAt.value, equals(memberModel.removedAt));
-      expect(result.avatarUrl.value, equals(memberModel.avatarUrl));
+      expect(result.avatarPath.value, equals(memberModel.avatarPath));
+      expect(result.avatarColor.value, equals(memberModel.avatarColor));
     });
   });
 }

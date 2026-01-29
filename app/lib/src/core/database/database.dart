@@ -85,7 +85,8 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(budgets);
         }
         if (from < 9) {
-          await m.addColumn(members, members.avatarUrl);
+          await m.addColumn(members, members.avatarPath);
+          await m.addColumn(members, members.avatarColor);
         }
       },
       beforeOpen: (details) async {

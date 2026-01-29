@@ -10,7 +10,8 @@ class MemberMapper {
       displayName: data.displayName,
       createdAt: data.createdAt,
       removedAt: data.removedAt,
-      avatarUrl: data.avatarUrl,
+      avatarPath: data.avatarPath,
+      avatarColor: data.avatarColor,
       orderIndex: data.orderIndex,
     );
   }
@@ -22,7 +23,8 @@ class MemberMapper {
       displayName: Value(domain.displayName),
       createdAt: Value(domain.createdAt),
       removedAt: Value(domain.removedAt),
-      avatarUrl: Value(domain.avatarUrl),
+      avatarPath: Value(domain.avatarPath),
+      avatarColor: Value(domain.avatarColor),
       orderIndex: Value(domain.orderIndex),
     );
   }
