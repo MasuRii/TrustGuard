@@ -1,10 +1,10 @@
-import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
 import '../models/reminder_settings.dart';
+import '../utils/platform_utils.dart';
 
 /// Service for handling local notifications and permissions.
 class NotificationService {
@@ -156,7 +156,7 @@ class NotificationService {
   Future<bool> requestPermissions() async {
     bool granted = false;
 
-    if (Platform.isIOS) {
+    if (PlatformUtils.isIOS) {
       granted =
           await _notifications
               .resolvePlatformSpecificImplementation<
@@ -164,7 +164,7 @@ class NotificationService {
               >()
               ?.requestPermissions(alert: true, badge: true, sound: true) ??
           false;
-    } else if (Platform.isAndroid) {
+    } else if (PlatformUtils.isAndroid) {
       final androidImplementation = _notifications
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
@@ -180,7 +180,7 @@ class NotificationService {
 
   /// Checks if notification permissions are currently granted.
   Future<bool> isPermissionGranted() async {
-    if (Platform.isAndroid) {
+    if (PlatformUtils.isAndroid) {
       return await _notifications
               .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin

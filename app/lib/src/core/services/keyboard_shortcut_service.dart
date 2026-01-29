@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../utils/platform_utils.dart';
 
 /// Intent for creating a new expense.
 class NewExpenseIntent extends Intent {
@@ -35,8 +35,8 @@ class KeyboardShortcutService {
   static ShortcutActivator platformShortcut(LogicalKeyboardKey key) {
     return SingleActivator(
       key,
-      control: !Platform.isMacOS,
-      meta: Platform.isMacOS,
+      control: !PlatformUtils.isMacOS,
+      meta: PlatformUtils.isMacOS,
     );
   }
 

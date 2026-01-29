@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'src/app/app.dart';
 import 'src/app/providers.dart';
 import 'src/core/platform/local_log_service.dart';
+import 'src/core/utils/platform_utils.dart';
 import 'src/features/budget/services/budget_alert_service.dart';
 import 'src/features/widgets/services/widget_data_service.dart';
 
@@ -32,14 +33,16 @@ void main() async {
       // Check budget alerts on startup
       await container.read(budgetAlertServiceProvider).checkAllBudgets();
 
-      // Update home screen widget on startup
-      final widgetService = container.read(widgetDataServiceProvider);
-      await widgetService.updateWidget();
+      // Update home screen widget on startup (mobile only)
+      if (PlatformUtils.supportsHomeWidgets) {
+        final widgetService = container.read(widgetDataServiceProvider);
+        await widgetService.updateWidget();
 
-      // Schedule periodic widget updates
-      widgetService.schedulePeriodicUpdate(
-        () => container.read(widgetUpdateProvider),
-      );
+        // Schedule periodic widget updates
+        widgetService.schedulePeriodicUpdate(
+          () => container.read(widgetUpdateProvider),
+        );
+      }
 
       FlutterError.onError = (details) {
         FlutterError.presentError(details);

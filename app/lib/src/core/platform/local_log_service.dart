@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -56,7 +57,12 @@ class LocalLogService {
 
   File? _logFile;
 
+  /// Whether file-based logging is supported on the current platform.
+  bool get isSupported => !kIsWeb;
+
   Future<void> init() async {
+    if (!isSupported) return;
+
     final directory = await getApplicationDocumentsDirectory();
     _logFile = File(p.join(directory.path, _logFileName));
   }
@@ -76,6 +82,12 @@ class LocalLogService {
   }
 
   Future<void> writeLog(LogEntry entry) async {
+    // On web, just print to console
+    if (!isSupported) {
+      debugPrint('[${entry.level.name.toUpperCase()}] ${entry.message}');
+      return;
+    }
+
     try {
       await _checkRotation();
       await _logFile!.writeAsString(
@@ -86,7 +98,7 @@ class LocalLogService {
     } catch (e) {
       // Fallback to print if file logging fails
       // ignore: avoid_print
-      print('Failed to write log: $e');
+      debugPrint('Failed to write log: $e');
     }
   }
 
@@ -151,6 +163,8 @@ class LocalLogService {
   );
 
   Future<List<String>> readLogs() async {
+    if (!isSupported) return [];
+
     if (_logFile == null) await init();
     if (!await _logFile!.exists()) return [];
 
@@ -162,6 +176,8 @@ class LocalLogService {
   }
 
   Future<void> clearLogs() async {
+    if (!isSupported) return;
+
     if (_logFile == null) await init();
     if (await _logFile!.exists()) {
       await _logFile!.delete();
@@ -173,6 +189,8 @@ class LocalLogService {
   }
 
   Future<File?> exportLogs() async {
+    if (!isSupported) return null;
+
     if (_logFile == null) await init();
     if (await _logFile!.exists()) {
       return _logFile;
