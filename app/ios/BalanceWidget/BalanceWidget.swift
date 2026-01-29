@@ -1,13 +1,31 @@
 import WidgetKit
 import SwiftUI
 
+struct WidgetGroupData: Identifiable {
+    let id = UUID()
+    let name: String
+    let balance: String
+}
+
+struct SimpleEntry: TimelineEntry {
+    let date: Date
+    let netBalance: String
+    let owed: String
+    let owing: String
+    let groups: [WidgetGroupData]
+    let lastUpdated: String
+}
+
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), netBalance: "$0.00", owed: "Owed: $0.00", owing: "Owing: $0.00")
+        SimpleEntry(date: Date(), netBalance: "$0.00", owed: "Owed: $0.00", owing: "Owing: $0.00", groups: [
+            WidgetGroupData(name: "Travel", balance: "$120.00"),
+            WidgetGroupData(name: "Roommates", balance: "-$45.00")
+        ], lastUpdated: "Just now")
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), netBalance: "$0.00", owed: "Owed: $0.00", owing: "Owing: $0.00")
+        let entry = SimpleEntry(date: Date(), netBalance: "$0.00", owed: "Owed: $0.00", owing: "Owing: $0.00", groups: [], lastUpdated: "Just now")
         completion(entry)
     }
 
@@ -19,8 +37,17 @@ struct Provider: TimelineProvider {
         let netBalance = userDefaults?.string(forKey: "widget_net_balance") ?? "$0.00"
         let owed = userDefaults?.string(forKey: "widget_owed") ?? "Owed: $0.00"
         let owing = userDefaults?.string(forKey: "widget_owing") ?? "Owing: $0.00"
+        let lastUpdated = userDefaults?.string(forKey: "widget_last_updated") ?? ""
 
-        let entry = SimpleEntry(date: Date(), netBalance: netBalance, owed: owed, owing: owing)
+        var groups: [WidgetGroupData] = []
+        for i in 0..<5 {
+            if let name = userDefaults?.string(forKey: "widget_group_name_\(i)"), !name.isEmpty {
+                let balance = userDefaults?.string(forKey: "widget_group_balance_\(i)") ?? "$0.00"
+                groups.append(WidgetGroupData(name: name, balance: balance))
+            }
+        }
+
+        let entry = SimpleEntry(date: Date(), netBalance: netBalance, owed: owed, owing: owing, groups: groups, lastUpdated: lastUpdated)
         entries.append(entry)
 
         let timeline = Timeline(entries: entries, policy: .atEnd)
@@ -28,45 +55,154 @@ struct Provider: TimelineProvider {
     }
 }
 
-struct SimpleEntry: TimelineEntry {
-    let date: Date
-    let netBalance: String
-    let owed: String
-    let owing: String
-}
-
 struct BalanceWidgetEntryView : View {
     var entry: Provider.Entry
+    @Environment(\.widgetFamily) var family
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
+            header
+
+            if family == .systemSmall {
+                smallBody
+            } else if family == .systemMedium {
+                mediumBody
+            } else {
+                largeBody
+            }
+
+            Spacer(minLength: 0)
+
+            if family != .systemSmall {
+                footer
+            }
+        }
+        .padding()
+        .background(themeBackground)
+        .widgetURL(URL(string: "trustguard://widget/home"))
+    }
+
+    var themeBackground: some View {
+        ZStack {
+            Color(UIColor.systemBackground)
+            LinearGradient(
+                gradient: Gradient(colors: [Color.purple.opacity(0.1), Color.blue.opacity(0.05)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+
+    var header: some View {
+        HStack {
+            Image(systemName: "shield.fill")
+                .font(.system(size: 10))
+                .foregroundColor(.purple)
             Text("TrustGuard")
                 .font(.caption2)
-                .opacity(0.7)
-
+                .bold()
+                .foregroundColor(.primary)
             Spacer()
+        }
+    }
 
+    var smallBody: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Spacer()
+            Text(entry.netBalance)
+                .font(.title2)
+                .bold()
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
+            Text("NET BALANCE")
+                .font(.system(size: 7))
+                .bold()
+                .foregroundColor(.secondary)
+            Spacer()
+        }
+    }
+
+    var mediumBody: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Spacer()
             Text(entry.netBalance)
                 .font(.title)
                 .bold()
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
+            Text("Global Net Balance")
+                .font(.caption2)
+                .foregroundColor(.secondary)
 
             Spacer()
 
             HStack {
-                Text(entry.owed)
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(red: 185/255, green: 246/255, blue: 202/255))
+                VStack(alignment: .leading) {
+                    Text(entry.owed)
+                        .font(.system(size: 11))
+                        .bold()
+                        .foregroundColor(.green)
+                    Text("Owed to you")
+                        .font(.system(size: 7))
+                        .foregroundColor(.secondary)
+                }
                 Spacer()
-                Text(entry.owing)
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(red: 255/255, green: 218/255, blue: 218/255))
+                VStack(alignment: .trailing) {
+                    Text(entry.owing)
+                        .font(.system(size: 11))
+                        .bold()
+                        .foregroundColor(.red)
+                    Text("You owe")
+                        .font(.system(size: 7))
+                        .foregroundColor(.secondary)
+                }
+            }
+            Spacer()
+        }
+    }
+
+    var largeBody: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            mediumBody
+
+            Divider()
+
+            Text("GROUP BALANCES")
+                .font(.system(size: 9))
+                .bold()
+                .foregroundColor(.secondary)
+
+            VStack(spacing: 6) {
+                if entry.groups.isEmpty {
+                    Text("No active groups")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 4)
+                } else {
+                    ForEach(entry.groups.prefix(5)) { group in
+                        HStack {
+                            Text(group.name)
+                                .font(.caption2)
+                                .lineLimit(1)
+                            Spacer()
+                            Text(group.balance)
+                                .font(.caption2)
+                                .bold()
+                                .foregroundColor(group.balance.contains("-") ? .red : .green)
+                        }
+                    }
+                }
             }
         }
-        .padding()
-        .background(Color(red: 103/255, green: 80/255, blue: 164/255))
-        .foregroundColor(.white)
+    }
+
+    var footer: some View {
+        HStack {
+            Text(entry.lastUpdated)
+                .font(.system(size: 8))
+                .foregroundColor(.secondary)
+            Spacer()
+        }
     }
 }
 
@@ -79,7 +215,7 @@ struct BalanceWidget: Widget {
             BalanceWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("TrustGuard Balance")
-        .description("View your current balances at a glance.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .description("View your group balances at a glance.")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

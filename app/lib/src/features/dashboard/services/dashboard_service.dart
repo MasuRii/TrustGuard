@@ -73,4 +73,49 @@ class DashboardService {
       unsettledGroupCount: unsettledGroupCount,
     );
   }
+
+  Future<List<({String name, int balance})>> getTopGroupBalances(
+    String? selfMemberId, {
+    int limit = 5,
+  }) async {
+    final groups = await _groupRepository.getAllGroups(includeArchived: false);
+    final results = <({String name, int balance})>[];
+
+    for (final group in groups) {
+      final members = await _memberRepository.getMembersByGroup(group.id);
+      final transactions = await _transactionRepository.getTransactionsByGroup(
+        group.id,
+      );
+
+      final balances = BalanceService.computeBalances(
+        members: members,
+        transactions: transactions,
+      );
+
+      int groupBalance = 0;
+      for (final balance in balances) {
+        if (selfMemberId != null) {
+          if (balance.memberId == selfMemberId) {
+            groupBalance = balance.netAmountMinor;
+            break;
+          }
+        } else {
+          // If no selfMemberId, use the absolute sum of all balances in group
+          // as a measure of "activity" or just use total net if it's a 2-person group
+          // For simplicity, let's just use the first member's balance if it's a personal app
+          // Actually, let's sum all positive balances.
+          if (balance.netAmountMinor > 0) {
+            groupBalance += balance.netAmountMinor;
+          }
+        }
+      }
+
+      if (groupBalance != 0) {
+        results.add((name: group.name, balance: groupBalance));
+      }
+    }
+
+    results.sort((a, b) => b.balance.abs().compareTo(a.balance.abs()));
+    return results.take(limit).toList();
+  }
 }
