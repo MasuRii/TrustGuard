@@ -6,6 +6,7 @@ part 'widget_data.g.dart';
 @freezed
 abstract class WidgetGroupData with _$WidgetGroupData {
   const factory WidgetGroupData({
+    required String id,
     required String name,
     required int netAmountMinor,
   }) = _WidgetGroupData;

@@ -28,7 +28,13 @@ class WidgetDataService {
       activeGroupCount: summary.groupCount,
       lastUpdated: DateTime.now(),
       topGroups: topGroups
-          .map((g) => WidgetGroupData(name: g.name, netAmountMinor: g.balance))
+          .map(
+            (g) => WidgetGroupData(
+              id: g.id,
+              name: g.name,
+              netAmountMinor: g.balance,
+            ),
+          )
           .toList(),
     );
   }
@@ -74,6 +80,7 @@ class WidgetDataService {
     // Save top groups for large widget
     for (int i = 0; i < data.topGroups.length; i++) {
       final group = data.topGroups[i];
+      await HomeWidget.saveWidgetData('widget_group_id_$i', group.id);
       await HomeWidget.saveWidgetData('widget_group_name_$i', group.name);
       await HomeWidget.saveWidgetData(
         'widget_group_balance_$i',
@@ -89,9 +96,20 @@ class WidgetDataService {
     }
     // Clear remaining slots (up to 5)
     for (int i = data.topGroups.length; i < 5; i++) {
+      await HomeWidget.saveWidgetData('widget_group_id_$i', '');
       await HomeWidget.saveWidgetData('widget_group_name_$i', '');
       await HomeWidget.saveWidgetData('widget_group_balance_$i', '');
       await HomeWidget.saveWidgetData('widget_group_balance_val_$i', 0);
+    }
+
+    // Save single group ID for deep linking if only one group exists
+    if (data.activeGroupCount == 1 && data.topGroups.isNotEmpty) {
+      await HomeWidget.saveWidgetData(
+        'widget_single_group_id',
+        data.topGroups.first.id,
+      );
+    } else {
+      await HomeWidget.saveWidgetData('widget_single_group_id', '');
     }
   }
 

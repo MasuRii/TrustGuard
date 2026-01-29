@@ -71,8 +71,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
       ).withTransition(TransitionType.fadeThrough),
+      GoRoute(path: '/groups', redirect: (context, state) => '/'),
+      GoRoute(
+        path: '/groups/:id',
+        redirect: (context, state) {
+          final id = state.pathParameters['id'];
+          return id != null ? '/group/$id' : '/';
+        },
+      ),
       GoRoute(
         path: '/lock',
+
         builder: (context, state) => const LockScreen(),
       ).withTransition(TransitionType.fadeThrough),
       GoRoute(

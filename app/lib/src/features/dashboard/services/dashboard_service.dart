@@ -74,12 +74,12 @@ class DashboardService {
     );
   }
 
-  Future<List<({String name, int balance})>> getTopGroupBalances(
+  Future<List<({String id, String name, int balance})>> getTopGroupBalances(
     String? selfMemberId, {
     int limit = 5,
   }) async {
     final groups = await _groupRepository.getAllGroups(includeArchived: false);
-    final results = <({String name, int balance})>[];
+    final results = <({String id, String name, int balance})>[];
 
     for (final group in groups) {
       final members = await _memberRepository.getMembersByGroup(group.id);
@@ -111,7 +111,7 @@ class DashboardService {
       }
 
       if (groupBalance != 0) {
-        results.add((name: group.name, balance: groupBalance));
+        results.add((id: group.id, name: group.name, balance: groupBalance));
       }
     }
 

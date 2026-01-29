@@ -33,7 +33,14 @@ class BalanceWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_update_time, lastUpdated)
 
                 // Deep link to app when tapping the widget
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("trustguard://widget/home"))
+                val singleGroupId = widgetData.getString("widget_single_group_id", "")
+                val uriStr = if (singleGroupId?.isNotEmpty() == true) {
+                    "trustguard://groups/$singleGroupId"
+                } else {
+                    "trustguard://groups"
+                }
+
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStr))
                 val pendingIntent = PendingIntent.getActivity(
                     context,
                     0,
