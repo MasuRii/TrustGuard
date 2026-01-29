@@ -2,10 +2,15 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:home_widget/home_widget.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/utils/platform_utils.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
 import '../../dashboard/services/dashboard_service.dart';
 import '../models/widget_data.dart';
 
+/// Service for managing home screen widget data.
+///
+/// Note: Home widgets are only supported on mobile platforms (Android/iOS).
+/// On other platforms, widget operations are no-ops.
 class WidgetDataService {
   final DashboardService _dashboardService;
 
@@ -40,6 +45,9 @@ class WidgetDataService {
   }
 
   Future<void> saveWidgetData(WidgetData data) async {
+    // Only save widget data on mobile platforms
+    if (!PlatformUtils.supportsHomeWidgets) return;
+
     await HomeWidget.saveWidgetData(
       'widget_owed_to_me_val',
       data.totalOwedToMe,
@@ -114,6 +122,9 @@ class WidgetDataService {
   }
 
   Future<void> updateWidget() async {
+    // Only update widget on mobile platforms
+    if (!PlatformUtils.supportsHomeWidgets) return;
+
     final data = await getWidgetData();
     await saveWidgetData(data);
     await HomeWidget.updateWidget(

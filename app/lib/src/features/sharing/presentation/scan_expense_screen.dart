@@ -8,10 +8,15 @@ import '../../../app/providers.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/models/expense.dart';
 import '../../../core/models/member.dart';
+import '../../../core/utils/platform_utils.dart';
 import '../services/qr_scanner_service.dart';
 import '../models/shareable_expense.dart';
 import '../../groups/presentation/groups_providers.dart';
 
+/// Screen for scanning QR codes to import expenses.
+///
+/// Note: QR scanning is only supported on mobile platforms (Android/iOS).
+/// On other platforms, this screen will display an unsupported message.
 class ScanExpenseScreen extends ConsumerStatefulWidget {
   final String groupId;
 
@@ -23,15 +28,23 @@ class ScanExpenseScreen extends ConsumerStatefulWidget {
 
 class _ScanExpenseScreenState extends ConsumerState<ScanExpenseScreen>
     with WidgetsBindingObserver {
-  final MobileScannerController _controller = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
-    returnImage: false,
-  );
+  MobileScannerController? _controller;
   bool _isProcessing = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (PlatformUtils.supportsCameraFeatures) {
+      _controller = MobileScannerController(
+        detectionSpeed: DetectionSpeed.noDuplicates,
+        returnImage: false,
+      );
+    }
+  }
+
+  @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -78,7 +91,7 @@ class _ScanExpenseScreenState extends ConsumerState<ScanExpenseScreen>
 
   Future<void> _handleScannedExpense(ShareableExpense expense) async {
     // Pause scanner during dialog
-    await _controller.stop();
+    await _controller?.stop();
 
     if (!mounted) return;
 
@@ -123,7 +136,7 @@ class _ScanExpenseScreenState extends ConsumerState<ScanExpenseScreen>
 
         if (shouldProceed != true) {
           if (mounted) {
-            await _controller.start();
+            await _controller?.start();
           }
           return;
         }
@@ -160,20 +173,62 @@ class _ScanExpenseScreenState extends ConsumerState<ScanExpenseScreen>
     } else {
       // Resume scanner if cancelled
       if (mounted) {
-        await _controller.start();
+        await _controller?.start();
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Show unsupported message on non-mobile platforms
+    if (!PlatformUtils.supportsCameraFeatures || _controller == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Scan Expense')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.qr_code_scanner,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'QR Scanning Unavailable',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'QR code scanning is only available on mobile devices (Android and iOS).',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                FilledButton.tonal(
+                  onPressed: () => context.pop(),
+                  child: const Text('Go Back'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final controller = _controller!;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan Expense'),
         actions: [
           IconButton(
             icon: ValueListenableBuilder(
-              valueListenable: _controller,
+              valueListenable: controller,
               builder: (context, state, child) {
                 switch (state.torchState) {
                   case TorchState.off:
@@ -187,13 +242,13 @@ class _ScanExpenseScreenState extends ConsumerState<ScanExpenseScreen>
                 }
               },
             ),
-            onPressed: () => _controller.toggleTorch(),
+            onPressed: () => controller.toggleTorch(),
           ),
         ],
       ),
       body: Stack(
         children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
+          MobileScanner(controller: controller, onDetect: _onDetect),
           // Overlay guide
           Center(
             child: Container(

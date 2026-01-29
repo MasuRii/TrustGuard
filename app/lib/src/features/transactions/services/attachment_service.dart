@@ -3,11 +3,25 @@ import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
+import '../../../core/utils/platform_utils.dart';
 
+/// Service for managing transaction attachments (images).
+///
+/// Note: File-based attachments are only available on platforms that support
+/// file system access (mobile and desktop). On web, operations will throw.
 class AttachmentService {
   static const String _attachmentDir = 'attachments';
 
+  /// Whether attachments are supported on the current platform.
+  bool get isSupported => PlatformUtils.supportsFileSystem;
+
   Future<String> saveAttachment(String txId, File imageFile) async {
+    if (!isSupported) {
+      throw UnsupportedError(
+        'File attachments are not available on this platform',
+      );
+    }
+
     final directory = await getApplicationDocumentsDirectory();
     final txDir = Directory(p.join(directory.path, _attachmentDir, txId));
 

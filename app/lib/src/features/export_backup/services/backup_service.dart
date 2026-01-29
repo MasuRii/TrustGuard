@@ -15,6 +15,7 @@ import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/database/repositories/tag_repository.dart';
 import '../../../core/database/repositories/reminder_repository.dart';
 import '../../../core/models/backup.dart';
+import '../../../core/utils/platform_utils.dart';
 
 /// Service for generating and sharing app-wide JSON backups.
 class BackupService {
@@ -59,7 +60,14 @@ class BackupService {
   }
 
   /// Exports and shares the complete app backup as a JSON file.
+  ///
+  /// Note: Sharing is only available on platforms that support file sharing.
+  /// On web, this operation will throw an exception.
   Future<void> shareBackup() async {
+    if (!PlatformUtils.supportsFileSystem) {
+      throw UnsupportedError('File sharing is not available on this platform');
+    }
+
     final backup = await createBackup();
     final jsonString = jsonEncode(backup.toJson());
 
