@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/expense.dart' as model;
@@ -142,7 +141,7 @@ class _SaveAsTemplateSheetState extends ConsumerState<SaveAsTemplateSheet> {
 
       HapticsService.success();
       if (mounted) {
-        context.pop();
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -187,7 +186,7 @@ class _SaveAsTemplateSheetState extends ConsumerState<SaveAsTemplateSheet> {
               Row(
                 children: [
                   IconButton(
-                    onPressed: () => context.pop(),
+                    onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                   ),
                   const SizedBox(width: AppTheme.space8),

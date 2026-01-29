@@ -51,7 +51,7 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
       },
       onUpgrade: (m, from, to) async {
-        if (from < 2) {
+        if (from < 2 && to >= 2) {
           await m.addColumn(expenseDetails, expenseDetails.exchangeRate);
           await m.addColumn(
             expenseDetails,
@@ -59,17 +59,17 @@ class AppDatabase extends _$AppDatabase {
           );
           await m.addColumn(expenseDetails, expenseDetails.originalAmountMinor);
         }
-        if (from < 3) {
+        if (from < 3 && to >= 3) {
           await m.createTable(recurringTransactions);
         }
-        if (from < 4) {
+        if (from < 4 && to >= 4) {
           await m.addColumn(transactions, transactions.isRecurring);
         }
-        if (from < 5) {
+        if (from < 5 && to >= 5) {
           await m.addColumn(members, members.orderIndex);
           await m.addColumn(tags, tags.orderIndex);
         }
-        if (from < 6) {
+        if (from < 6 && to >= 6) {
           await m.addColumn(transactions, transactions.sourceId);
           await m.createIndex(
             Index(
@@ -78,17 +78,18 @@ class AppDatabase extends _$AppDatabase {
             ),
           );
         }
-        if (from < 7) {
+        if (from < 7 && to >= 7) {
           await m.createTable(expenseTemplates);
         }
-        if (from < 8) {
+        if (from < 8 && to >= 8) {
           await m.createTable(budgets);
         }
-        if (from < 9) {
+        if (from < 9 && to >= 9) {
           await m.addColumn(members, members.avatarPath);
           await m.addColumn(members, members.avatarColor);
         }
       },
+
       beforeOpen: (details) async {
         if (details.wasCreated) {
           // Initial data if needed

@@ -31,7 +31,9 @@ import '../features/transactions/services/attachment_service.dart';
 import '../features/transactions/services/recurrence_service.dart';
 import '../features/transactions/services/amount_suggestion_service.dart';
 import '../features/budget/services/budget_service.dart';
+import '../features/members/services/avatar_service.dart';
 import '../core/models/budget_progress.dart';
+
 import '../core/services/coachmark_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
@@ -338,4 +340,9 @@ final budgetProgressProvider = FutureProvider.family<BudgetProgress, Budget>((
 ) {
   final service = ref.watch(budgetServiceProvider);
   return service.getBudgetProgress(budget);
+});
+
+/// Provider for [AvatarService].
+final avatarServiceProvider = Provider<AvatarService>((ref) {
+  return AvatarService();
 });

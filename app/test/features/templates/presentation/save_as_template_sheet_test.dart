@@ -97,6 +97,9 @@ void main() {
   });
 
   testWidgets('validates empty name', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     when(
       () => mockRepository.getTemplatesByGroup('group1'),
     ).thenAnswer((_) async => []);
@@ -105,19 +108,20 @@ void main() {
 
     // Clear name
     await tester.enterText(find.byType(TextFormField).first, '');
-    await tester.drag(
-      find.byType(SingleChildScrollView),
-      const Offset(0, -300),
-    );
-    await tester.pump();
+    final saveButton = find.widgetWithText(ElevatedButton, 'Save Template');
+    await tester.ensureVisible(saveButton);
+    await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Save Template'));
-    await tester.pump();
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
 
     expect(find.text('Please enter a name'), findsOneWidget);
   });
 
   testWidgets('saves template successfully', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     when(
       () => mockRepository.getTemplatesByGroup('group1'),
     ).thenAnswer((_) async => []);
@@ -128,13 +132,11 @@ void main() {
     await pumpSheet(tester, formData);
 
     await tester.enterText(find.byType(TextFormField).first, 'My Template');
-    await tester.drag(
-      find.byType(SingleChildScrollView),
-      const Offset(0, -300),
-    );
-    await tester.pump();
+    final saveButton = find.widgetWithText(ElevatedButton, 'Save Template');
+    await tester.ensureVisible(saveButton);
+    await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Save Template'));
+    await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
     verify(() => mockRepository.createTemplate(any())).called(1);
@@ -142,6 +144,9 @@ void main() {
   });
 
   testWidgets('shows error on duplicate name', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     when(() => mockRepository.getTemplatesByGroup('group1')).thenAnswer(
       (_) async => [
         template_model.ExpenseTemplate(
@@ -162,14 +167,12 @@ void main() {
     await pumpSheet(tester, formData);
 
     await tester.enterText(find.byType(TextFormField).first, 'My Template');
-    await tester.drag(
-      find.byType(SingleChildScrollView),
-      const Offset(0, -300),
-    );
-    await tester.pump();
+    final saveButton = find.widgetWithText(ElevatedButton, 'Save Template');
+    await tester.ensureVisible(saveButton);
+    await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Save Template'));
-    await tester.pump();
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
 
     expect(
       find.text('A template with this name already exists'),
